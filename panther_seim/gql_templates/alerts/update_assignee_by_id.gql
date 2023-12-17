@@ -1,0 +1,13 @@
+mutation UpdateAlertAssigneeById ($input: UpdateAlertsAssigneeByIdInput!) {
+    updateAlertsAssigneeById (input: $input) {
+        alerts {
+            id
+            assignee {
+                email
+                givenName
+                familyName
+                id
+            }
+        }
+    }
+}

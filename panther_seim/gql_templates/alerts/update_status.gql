@@ -1,0 +1,8 @@
+mutation UpdateAlertStatus ($input: UpdateAlertStatusByIdInput!) {
+    updateAlertStatusById(input: $input) {
+       alerts {
+         id
+         status
+       }
+    }
+  }
