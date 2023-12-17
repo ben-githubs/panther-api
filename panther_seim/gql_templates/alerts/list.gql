@@ -1,0 +1,16 @@
+query ListAlerts($input: AlertsInput!) {
+    alerts(input: $input) {
+        edges {
+            node {
+                id
+                title
+                severity
+                status
+            }
+        }
+        pageInfo {
+            hasNextPage
+            endCursor
+        }
+    }
+}

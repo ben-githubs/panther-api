@@ -1,0 +1,8 @@
+query GetAlert ($id: String!) {
+    alert(id: $id) {
+        id
+        title
+        severity
+        status
+    }
+}
