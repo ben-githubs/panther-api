@@ -71,13 +71,12 @@ class Panther:
                 url=f"https://api.{self.domain}/public/graphql", headers={"X-API-KEY": self.token}
             )
             self._gql_client = gql.Client(
-                transport = transport,
-                fetch_schema_from_transport = True,
-                parse_results = self.auto_convert
+                transport=transport,
+                fetch_schema_from_transport=True,
+                parse_results=self.auto_convert,
             )
 
             if self.auto_convert:
                 asyncio.run(update_schemas(self._gql_client))
-
 
         return self._gql_client

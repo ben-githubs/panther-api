@@ -20,38 +20,40 @@ UUID_REGEX = re.compile(
 )
 EMAIL_REGEX = re.compile(r"[\w\-\.]+@([\w-]+\.)+[\w-]{2,4}")
 
+
 # Panther is really weird. Some entites, like alerts, can only be referenced by IDs in hexadecimal
 #   format (without dashes), while others, like cloud accounts, require the dashes to be present.
 #   In an attempt at user friendliness, we allow end users to specify IDs in either format, and use
 #   these functions to automatically transform to the Panther-required format.
 def to_uuid(val: str) -> str:
-    """ Converts a pure hexadecimal ID (without dashes) into a UUID format ID (with dashes).
+    """Converts a pure hexadecimal ID (without dashes) into a UUID format ID (with dashes).
 
     Args:
         val (str): the ID to transform to UUID format.
-    
+
     Returns:
         the same ID, formatted with dashes.
     """
     if not UUID_REGEX.fullmatch(val):
         raise ValueError(f"Invalid ID: {val}")
-    if '-' not in val:
+    if "-" not in val:
         val = "-".join([val[0:8], val[8:12], val[12:16], val[16:20], val[20:]])
     return val
 
+
 def to_hex(val: str) -> str:
-    """ Converts a UUID-style ID (with dashes) into a pure hexadecima format ID (without dashes).
+    """Converts a UUID-style ID (with dashes) into a pure hexadecima format ID (without dashes).
 
     Args:
         val (str): the ID to transform to hexadecimal format.
-    
+
     Returns:
         the same ID, formatted without dashes.
     """
     if not UUID_REGEX.fullmatch(val):
         raise ValueError(f"Invalid ID: {val}")
-    return val.replace('-', '')
-    
+    return val.replace("-", "")
+
 
 def validate_timestamp(timestamp: int | str | datetime):
     """We allow all timestamps to be specified as integers (representing UNIX epoch time, strings
