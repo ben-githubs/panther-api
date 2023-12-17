@@ -45,8 +45,8 @@ class AlertsInterface:
                 },
             )
             all_alerts.extend([edge["node"] for edge in results["alerts"]["edges"]])
-            has_more = results["alerts"]["pageInfo"]["hasNextPage"]
-            cursor = results["alerts"]["pageInfo"]["endCursor"]
+            has_more = results["alerts"].get("pageInfo", {}).get("hasNextPage")
+            cursor = results["alerts"].get("pageInfo", {}).get("endCursor")
 
         return all_alerts
 

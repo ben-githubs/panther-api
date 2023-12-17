@@ -25,8 +25,8 @@ class CloudAccountsInterface:
         while has_more:
             results = self.client.execute(query, variable_values={'cursor': cursor})
             accounts.extend([edge["node"] for edge in results["cloudAccounts"]["edges"]])
-            has_more = results["cloudAccounts"]["pageInfo"]["hasNextPage"]
-            cursor = results["cloudAccounts"]["pageInfo"]["endCursor"]
+            has_more = results["cloudAccounts"].get("pageInfo", {}).get("hasNextPage")
+            cursor = results["cloudAccounts"].get("pageInfo", {}).get("endCursor")
 
         return accounts
     
