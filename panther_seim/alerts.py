@@ -65,7 +65,7 @@ class AlertsInterface:
             raise ValueError(f"ID must be a string, not {type(alertid).__name__}.")
         # pylint: disable=line-too-long
         uuid_pattern = (
-            r"[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$"
+            r"[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}"
         )
         if not re.fullmatch(uuid_pattern, alertid):
             raise ValueError(f"ID value {alertid} is not a UUID.")
