@@ -11,6 +11,8 @@ import re
 import gql
 from gql.transport.aiohttp import AIOHTTPTransport
 
+from .alerts import AlertsInterface
+
 
 # pylint: disable=too-few-public-methods
 class Panther:
@@ -40,7 +42,9 @@ class Panther:
 
         self.token, self.domain = token, domain
 
-    def _gql(self):
+        self.alerts = AlertsInterface(self._gql())
+
+    def _gql(self) -> gql.Client:
         """Lazily loads a GQL client and returns it. Used internally for makign GQL API calls to
         Panther.
 
@@ -55,3 +59,4 @@ class Panther:
                 url=f"https://api.{self.domain}/public/graphql", headers={"X-API-KEY": self.token}
             )
             self._gql_client = gql.Client(transport=transport, fetch_schema_from_transport=True)
+        return self._gql_client

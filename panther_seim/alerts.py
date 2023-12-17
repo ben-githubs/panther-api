@@ -40,11 +40,11 @@ class AlertsInterface:
         while has_more:
             results = self.client.execute(
                 query,
-                vairable_values={
+                variable_values={
                     "input": {"createdAtBefore": end, "createdAtAfter": start, "cursor": cursor}
                 },
             )
-            all_alerts.extend([edge["node"] for edge in results["alerts"]["edged"]])
+            all_alerts.extend([edge["node"] for edge in results["alerts"]["edges"]])
             has_more = results["alerts"]["pageInfo"]["hasNextPage"]
             cursor = results["alerts"]["pageInfo"]["endCursor"]
 
