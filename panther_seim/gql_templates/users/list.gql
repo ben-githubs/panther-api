@@ -1,0 +1,16 @@
+query ListUsers {
+  users {
+    id
+    givenName
+    familyName
+    email
+    status
+    createdAt
+    lastLoggedInAt
+    role {
+      name
+      id
+      permissions
+    }
+  }
+}

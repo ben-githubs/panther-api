@@ -13,6 +13,7 @@ import gql
 from gql.transport.aiohttp import AIOHTTPTransport
 
 from .alerts import AlertsInterface
+from .users import UsersInterface
 
 from .gql_scalars import update_schemas
 
@@ -51,6 +52,7 @@ class Panther:
         self.auto_convert = auto_convert
 
         self.alerts = AlertsInterface(self._gql())
+        self.users = UsersInterface(self._gql())
 
     def _gql(self) -> gql.Client:
         """Lazily loads a GQL client and returns it. Used internally for makign GQL API calls to
