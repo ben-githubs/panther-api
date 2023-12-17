@@ -2,15 +2,9 @@
 """
 from collections import defaultdict
 from datetime import datetime
-import re
 import typing
 import gql
-from ._util import validate_timestamp, gql_from_file
-
-UUID_PATTERN = re.compile(
-    r"[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}"
-)
-EMAIL_REGEX = re.compile(r"[\w\-\.]+@([\w-]+\.)+[\w-]{2,4}")
+from ._util import validate_timestamp, gql_from_file, UUID_REGEX, EMAIL_REGEX
 
 class AlertsInterface:
     """An interface for working with alerts in Panther. An instance of this class will be attached
@@ -69,7 +63,7 @@ class AlertsInterface:
         # Validate input
         if not isinstance(alertid, str):
             raise ValueError(f"ID must be a string, not {type(alertid).__name__}.")
-        if not UUID_PATTERN.fullmatch(alertid):
+        if not UUID_REGEX.fullmatch(alertid):
             raise ValueError(f"ID value {alertid} is not a UUID.")
 
         # Get Alert
@@ -94,7 +88,7 @@ class AlertsInterface:
         # Validate the input
         if not isinstance(alertid, str):
             raise ValueError(f"Alert ID must be a string, not {type(alertid).__name__}.")
-        if not UUID_PATTERN.fullmatch(alertid):
+        if not UUID_REGEX.fullmatch(alertid):
             raise ValueError(f"ID value {alertid} is not a UUID.")
         if not isinstance(body, str):
             raise ValueError(f"Comment body must be a string, not {type(body).__name__}.")
@@ -143,7 +137,7 @@ class AlertsInterface:
             alertids = [alertids]
         # Validate regex
         for alertid in alertids:
-            if not UUID_PATTERN.fullmatch(alertid):
+            if not UUID_REGEX.fullmatch(alertid):
                 raise ValueError(f"ID value {alertid} is not a UUID.")
         
         if status:

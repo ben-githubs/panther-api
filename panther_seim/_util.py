@@ -6,12 +6,19 @@ Functions:
 
 from datetime import datetime
 from pathlib import Path
+import re
 from gql import gql
 import pytz
 
 # This variable defines the root of the package on the filesystem, and allows us to import files
 #   from within the package.
 PACKAGE_ROOT = Path(__file__).parent.absolute()
+
+# Regex Patterns
+UUID_REGEX = re.compile(
+    r"[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}"
+)
+EMAIL_REGEX = re.compile(r"[\w\-\.]+@([\w-]+\.)+[\w-]{2,4}")
 
 
 def validate_timestamp(timestamp: int | str | datetime):

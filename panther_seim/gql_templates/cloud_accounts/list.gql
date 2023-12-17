@@ -1,0 +1,12 @@
+query listCloudAccounts {
+    cloudAccounts {
+        edges {
+            node {
+                awsAccountId
+                id
+                isRealtimeScanningEnabled
+                label
+            }
+        }
+    }
+}

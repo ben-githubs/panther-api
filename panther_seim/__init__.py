@@ -13,6 +13,7 @@ import gql
 from gql.transport.aiohttp import AIOHTTPTransport
 
 from .alerts import AlertsInterface
+from .cloud_accounts import CloudAccountsInterface
 from .users import UsersInterface
 
 from .gql_scalars import update_schemas
@@ -52,6 +53,7 @@ class Panther:
         self.auto_convert = auto_convert
 
         self.alerts = AlertsInterface(self._gql())
+        self.cloud_accounts = CloudAccountsInterface(self._gql())
         self.users = UsersInterface(self._gql())
 
     def _gql(self) -> gql.Client:

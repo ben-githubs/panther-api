@@ -1,0 +1,26 @@
+query cloudAccount ($id: ID!) {
+    cloudAccount(id: $id) {
+        awsAccountId
+        awsRegionIgnoreList
+        awsScanConfig {
+        auditRole
+        }
+        awsStackName
+        createdAt
+        createdBy {
+            ... on User {
+                id
+            }
+            ... on APIToken {
+                id
+            }
+        }
+        id
+        isEditable
+        isRealtimeScanningEnabled
+        label
+        lastModifiedAt
+        resourceRegexIgnoreList
+        resourceTypeIgnoreList
+    }
+}

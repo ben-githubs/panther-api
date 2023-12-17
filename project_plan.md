@@ -97,3 +97,22 @@ Below, we list the outline for each function. Parameters in **bold** are require
   - format `str`: the format of the body. Can be `HTML` or `PLAIN_TEXT` *Default: `HTML`*
 - returns:
   - str: the comment ID
+
+### cloud accounts
+**list**
+- params:
+  - *none*
+- returns:
+  - list
+    - dict
+      - `awsAccountId`: str
+      - `id`: str
+      - `label`: str
+      - `isRealtimeScanningEnabled`: bool
+
+**get**
+- params:
+  - **id**: `str`
+- returns
+  - dict
+    - 
