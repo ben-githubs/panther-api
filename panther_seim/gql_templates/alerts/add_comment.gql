@@ -1,0 +1,25 @@
+mutation AddComment($input: CreateAlertCommentInput!) {
+    createAlertComment (input: $input) {
+        comment {
+            id
+            body
+            createdAt
+            createdBy {
+                ... on User {
+                    id
+                    email
+                }
+                ... on APIToken {
+                    id
+                    name
+                }
+            }
+            entity {
+                ... on Alert {
+                    id
+                }
+            }
+            format
+        }
+    }
+}

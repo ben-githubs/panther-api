@@ -5,6 +5,9 @@ import re
 import gql
 from ._util import validate_timestamp, gql_from_file
 
+UUID_PATTERN = re.compile(
+    r"[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}"
+)
 
 class AlertsInterface:
     """An interface for working with alerts in Panther. An instance of this class will be attached
@@ -63,14 +66,48 @@ class AlertsInterface:
         # Validate input
         if not isinstance(alertid, str):
             raise ValueError(f"ID must be a string, not {type(alertid).__name__}.")
-        # pylint: disable=line-too-long
-        uuid_pattern = (
-            r"[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}"
-        )
-        if not re.fullmatch(uuid_pattern, alertid):
+        if not UUID_PATTERN.fullmatch(alertid):
             raise ValueError(f"ID value {alertid} is not a UUID.")
 
         # Get Alert
         query = gql_from_file("alerts/get.gql")
         result = self.client.execute(query, variable_values={"id": alertid})
         return result.get("alert")
+
+
+    def add_comment(self, alertid: str, body: str, format: str = "PLAIN_TEXT") -> dict:
+        """ Adds a comment to an existing alert.
+
+        Args:
+            alertid (str): the ID of the alert to comment on.
+            body (str): the content of the comment.
+            format (str): the formatting of 'body'. Allowed values are 'PLAIN_TEXT' and 'HTML'.
+                If format is 'HTML', you can use HTML tags in your 'body' to add formatting to your
+                alert comment.
+        
+        Returns:
+            Details about the created comment.
+        """
+        # Validate the input
+        if not isinstance(alertid, str):
+            raise ValueError(f"Alert ID must be a string, not {type(alertid).__name__}.")
+        if not UUID_PATTERN.fullmatch(alertid):
+            raise ValueError(f"ID value {alertid} is not a UUID.")
+        if not isinstance(body, str):
+            raise ValueError(f"Comment body must be a string, not {type(alertid).__name__}.")
+        if not isinstance(format, str):
+            raise ValueError(f"Format spec must be a string, not {type(alertid).__name__}.")
+        format = format.upper()
+        if format not in ("PLAIN_TEXT", "HTML"):
+            raise ValueError(f"Format must be one of 'PLAIN_TEXT', 'HTML'; got '{format}'.")
+        
+        # Invoke API
+        query = gql_from_file("alerts/add_comment.gql")
+        result = self.client.execute(query, variable_values = {
+            "input": {
+                "alertId": alertid,
+                "body": body,
+                "format": format
+            }
+        })
+        return result.get("createAlertComment")
