@@ -3,7 +3,7 @@
 
 import gql
 
-from ._util import gql_from_file, UUID_REGEX
+from ._util import gql_from_file, UUID_REGEX, to_uuid
 
 class CloudAccountsInterface:
     """An interface for working with users in Panther. An instance of this class will be attached
@@ -45,15 +45,8 @@ class CloudAccountsInterface:
         if not UUID_REGEX.fullmatch(accountid):
             raise ValueError(f"Invalid account ID: '{accountid}'.")
         
-        # Transform ID
-        #   For some reason, cloud account UUIDs need to have the dashes in them, even though 
-        #   other areas of the API have no such stipulation. Rather than propogate this oddity
-        #   to this library, we'll just automagically add the dashes in if the user didn't include
-        #   them.
-        if '-' not in accountid:
-            accountid = "-".join([
-                accountid[0:8], accountid[8:12], accountid[12:16], accountid[16-20], accountid[20:]
-            ])
+        # Cloud Accounts need dashes in the ID
+        accountid = to_uuid(accountid)
         
         # Get Account
         query = gql_from_file("cloud_accounts/get.gql")

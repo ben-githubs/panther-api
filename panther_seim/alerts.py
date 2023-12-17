@@ -4,7 +4,7 @@ from collections import defaultdict
 from datetime import datetime
 import typing
 import gql
-from ._util import validate_timestamp, gql_from_file, UUID_REGEX, EMAIL_REGEX
+from ._util import validate_timestamp, gql_from_file, UUID_REGEX, EMAIL_REGEX, to_hex
 
 class AlertsInterface:
     """An interface for working with alerts in Panther. An instance of this class will be attached
@@ -65,6 +65,9 @@ class AlertsInterface:
             raise ValueError(f"ID must be a string, not {type(alertid).__name__}.")
         if not UUID_REGEX.fullmatch(alertid):
             raise ValueError(f"ID value {alertid} is not a UUID.")
+        
+        # Alert IDs can't have dashes
+        alertid = to_hex(alertid)
 
         # Get Alert
         query = gql_from_file("alerts/get.gql")
@@ -97,6 +100,9 @@ class AlertsInterface:
         format = format.upper()
         if format not in ("PLAIN_TEXT", "HTML"):
             raise ValueError(f"Format must be one of 'PLAIN_TEXT', 'HTML'; got '{format}'.")
+        
+        # Alert IDs can't have dashes
+        alertid = to_hex(alertid)
         
         # Invoke API
         query = gql_from_file("alerts/add_comment.gql")
@@ -139,6 +145,9 @@ class AlertsInterface:
         for alertid in alertids:
             if not UUID_REGEX.fullmatch(alertid):
                 raise ValueError(f"ID value {alertid} is not a UUID.")
+        
+        # Alert IDs can't have dashes
+        alertid = to_hex(alertid)
         
         if status:
             if not isinstance(status, str):

@@ -22,3 +22,26 @@ def test_validate_timestamp_valid_input(input, expected):
 def test_validate_timestamp_invalid_input(input):
     with pytest.raises(ValueError):
         _util.validate_timestamp(input)
+
+@pytest.mark.parametrize(("val", "ans"), [
+    ("fd5e590e-79ed-4f12-b826-5d01cfc0333b", "fd5e590e-79ed-4f12-b826-5d01cfc0333b"),
+    ("e1903752-9d26-11ee-9289-325096b39f47", "e1903752-9d26-11ee-9289-325096b39f47"),
+    ("e83a9b42-9d26-11ee-a90d-325096b39f47", "e83a9b42-9d26-11ee-a90d-325096b39f47"),
+    ("fd5e590e79ed4f12b8265d01cfc0333b", "fd5e590e-79ed-4f12-b826-5d01cfc0333b"),
+    ("e19037529d2611ee9289325096b39f47", "e1903752-9d26-11ee-9289-325096b39f47"),
+    ("e83a9b429d2611eea90d325096b39f47", "e83a9b42-9d26-11ee-a90d-325096b39f47")
+])
+def test_to_uuid(val, ans):
+    assert _util.to_uuid(val) == ans
+
+
+@pytest.mark.parametrize(("val", "ans"), [
+    ("fd5e590e79ed4f12b8265d01cfc0333b", "fd5e590e79ed4f12b8265d01cfc0333b"),
+    ("e19037529d2611ee9289325096b39f47", "e19037529d2611ee9289325096b39f47"),
+    ("e83a9b429d2611eea90d325096b39f47", "e83a9b429d2611eea90d325096b39f47"),
+    ("fd5e590e-79ed-4f12-b826-5d01cfc0333b", "fd5e590e79ed4f12b8265d01cfc0333b"),
+    ("e1903752-9d26-11ee-9289-325096b39f47", "e19037529d2611ee9289325096b39f47"),
+    ("e83a9b42-9d26-11ee-a90d-325096b39f47", "e83a9b429d2611eea90d325096b39f47")
+])
+def test_to_hex(val, ans):
+    assert _util.to_hex(val) == ans
