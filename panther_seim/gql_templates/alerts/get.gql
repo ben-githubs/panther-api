@@ -1,8 +1,52 @@
-query GetAlert ($id: String!) {
+query GetAlert ($id: ID!) {
     alert(id: $id) {
         id
         title
         severity
         status
+        assignee {
+            id
+            email
+        }
+        createdAt
+        deliveries {
+            dispatchedAt
+            label
+            message
+            outputId
+            statusCode
+            success
+            url
+        }
+        description
+        firstEventOccurredAt
+        id
+        lastReceivedEventAt
+        origin {
+            ... on Detection {
+                id
+                name
+                detectionType: type
+            }
+            ... on SystemError {
+                type
+                errorType: relatedComponent
+            }
+        }
+        reference
+        runbook
+        severity
+        type
+        updatedAt
+        updatedBy {
+            ... on User {
+                id
+                email
+            }
+            ... on APIToken {
+                id
+                name
+            }
+        }
     }
 }
