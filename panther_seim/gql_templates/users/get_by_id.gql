@@ -1,0 +1,17 @@
+query user ($id: ID!) {
+    userById(id: $id) {
+    id
+    givenName
+    familyName
+    email
+    role {
+      name
+      id
+      permissions
+    }
+    status
+    enabled
+    createdAt
+    lastLoggedInAt
+  }
+}

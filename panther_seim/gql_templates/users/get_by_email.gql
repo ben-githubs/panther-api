@@ -1,0 +1,17 @@
+query user ($email: String!) {
+  userByEmail(email: $email) {
+    id
+    givenName
+    familyName
+    email
+    role {
+      name
+      id
+      permissions
+    }
+    status
+    enabled
+    createdAt
+    lastLoggedInAt
+  }
+}
