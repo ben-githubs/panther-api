@@ -7,9 +7,11 @@ Functions:
 from datetime import datetime
 from pathlib import Path
 import re
-from gql import gql
+from gql import gql, Client
+from gql.transport.exceptions import TransportQueryError
 import pytz
 
+from .exceptions import EntityNotFoundError, AccessDeniedError
 # This variable defines the root of the package on the filesystem, and allows us to import files
 #   from within the package.
 PACKAGE_ROOT = Path(__file__).parent.absolute()
@@ -53,6 +55,24 @@ def to_hex(val: str) -> str:
     if not UUID_REGEX.fullmatch(val):
         raise ValueError(f"Invalid ID: {val}")
     return val.replace("-", "")
+
+def execute_gql(queryfile: str, client: Client, variable_input: dict = {}) -> dict:
+    """ Extracts a gql query from a file, and executes it on the given client with the supplied
+    input, if any. Also does some common error handling.
+    """
+    query = gql_from_file(queryfile)
+    try:
+        return client.execute(query, variable_values=variable_input)
+    except TransportQueryError as e:
+        for err in e.errors:
+            msg = err.get("message", "")
+            if msg.endswith("does not exist"):
+                raise EntityNotFoundError(msg) from e
+            elif msg == "access denied":
+                method_name = e.get("path", ["<UNKNWON_METHOD>"])[-1]
+                raise AccessDeniedError(f"API Token is not permitted to call method {method_name}")
+        # If we didn't catch the error above, raise the initial error
+        raise
 
 
 def validate_timestamp(timestamp: int | str | datetime):
