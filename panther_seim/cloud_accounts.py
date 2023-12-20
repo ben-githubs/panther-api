@@ -170,3 +170,80 @@ class CloudAccountsInterface:
         print(results)
         return results["deleteCloudAccount"]["id"]
 
+
+    def update(
+            self,
+            accountid: str,
+            label: str,
+            audit_role: str,
+            region_ignore: typing.List[str] = None,
+            resource_regex_ignore: typing.List[str] = None,
+            resource_type_ignore: typing.List[str] = None
+        ) -> str:
+        """ Make changes to a cloud account integration.
+
+        Args:
+            accountid: The ID of the cloud account integration. Not to be confused with the 
+                12-digit AWS account ID.
+            label (str): The desired label of the account.
+            audit_role (str): The desired ARN of the IAM role Panther can use to scan the account.
+            region_ignore (str, optional): The desired list of AWS regions to ignore when scanning.
+            resource_regex_ignore (list[str]): A list of regex patterns. If a resource ARN matches
+                this pattern, Panther will ignore it when scanning.
+            resource_type_ignore (list[str]): A list of resource types to ignore when scanning.
+        
+        Returns:
+            The fully-updated cloud account configuration.
+        """
+
+        # -- Validate Input
+        if not isinstance(accountid, str):
+            raise TypeError(f"Account ID needs to be a string, not '{type(accountid).__name__}'.")
+        if not UUID_REGEX.fullmatch(accountid):
+            raise ValueError(f"Invalid account ID: '{accountid}'.")
+        
+        if not isinstance(audit_role, str):
+            raise TypeError(f"Audit role ARN must be a string; got '{type(audit_role).__name__}'.")
+        if not ARN_REGEX.fullmatch(audit_role):
+            raise ValueError(f"Invalid audit IAM role arn: '{audit_role}' does not match {ARN_REGEX.pattern}")
+
+        if not isinstance(label, str):
+            raise TypeError(f"Cloud account label must be a string; got '{type(label).__name__}'.")
+        
+        if region_ignore is not None:
+            if not isinstance(region_ignore, list):
+                raise TypeError(f"Region ignore list must be a list; got '{type(region_ignore).__name__}'.")
+            for region in region_ignore:
+                if not isinstance(region, str):
+                    raise TypeError(f"Region ignore list has a non-string memeber; got '{type(region).__name__}'.")
+                if region not in AWS_REGIONS:
+                    raise ValueError(f"Invalid region to ignore: {region}")
+        
+        if resource_regex_ignore is not None:
+            if not isinstance(resource_regex_ignore, str):
+                raise TypeError(f"Regex ignore list must be a list; got '{type(resource_regex_ignore).__name__}'.")
+            for item in resource_regex_ignore:
+                if not isinstance(item, str):
+                    raise TypeError(f"Regex ignore list has a non-strimg member; got '{type(item).__name__}'.")
+        
+        if resource_type_ignore is not None:
+            if not isinstance(resource_type_ignore, str):
+                raise TypeError(f"Resource ignore list must be a list; got '{type(resource_type_ignore).__name__}'.")
+        
+        # -- Make API Call
+        values = {
+            "id": accountid,
+            "awsScanConfig": {
+                "auditRole": audit_role
+            },
+            "label": label
+        }
+        if region_ignore:
+            values["regionIgnoreList"] = region_ignore
+        if resource_regex_ignore:
+            values["resourceRegexIgnoreList"] = resource_regex_ignore
+        if resource_type_ignore:
+            values["resourceTypeIgnoreList"] = resource_type_ignore
+        
+        result = execute_gql("cloud_accounts/update.gql", self.client, variable_values={"input": values})
+        return result["updateCloudAccount"]["cloudAccount"]
