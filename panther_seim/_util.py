@@ -22,6 +22,42 @@ UUID_REGEX = re.compile(
 )
 EMAIL_REGEX = re.compile(r"[\w\-\.]+@([\w-]+\.)+[\w-]{2,4}")
 
+ARN_REGEX = re.compile(r"arn:aws:iam::\d{12}:role\/[\w+=,.@\/-]{1,128}")
+
+# AWS Regions
+AWS_REGIONS = {
+    "us-east-2",
+    "us-east-1",
+    "us-west-1",
+    "us-west-2",
+    "af-south-1",
+    "ap-east-1",
+    "ap-south-2",
+    "ap-southeast-3",
+    "ap-southeast-4",
+    "ap-south-1",
+    "ap-northeast-3",
+    "ap-northeast-2",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ap-northeast-1",
+    "ca-central-1",
+    "eu-central-1",
+    "eu-west-1",
+    "eu-west-2",
+    "eu-south-1",
+    "eu-west-3",
+    "eu-south-2",
+    "eu-north-1",
+    "eu-central-2",
+    "il-central-1",
+    "me-south-1",
+    "me-central-1",
+    "sa-east-1",
+    "us-gov-east-1",
+    "us-gov-west-1"
+}
+
 
 # Panther is really weird. Some entites, like alerts, can only be referenced by IDs in hexadecimal
 #   format (without dashes), while others, like cloud accounts, require the dashes to be present.
@@ -55,6 +91,7 @@ def to_hex(val: str) -> str:
     if not UUID_REGEX.fullmatch(val):
         raise ValueError(f"Invalid ID: {val}")
     return val.replace("-", "")
+
 
 def execute_gql(queryfile: str, client: Client, variable_values: dict = {}) -> dict:
     """ Extracts a gql query from a file, and executes it on the given client with the supplied

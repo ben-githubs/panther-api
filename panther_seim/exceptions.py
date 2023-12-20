@@ -13,3 +13,7 @@ class AccessDeniedError(PantherError):
     """ Raised when a token has insufficient permissions to use an API method.
     """
     pass
+
+class EntityAlreadyExistsError(PantherError):
+    """ Raised when the user tries to create an entity, but it already exists in Panther.
+    """

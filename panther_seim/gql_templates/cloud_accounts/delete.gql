@@ -1,0 +1,5 @@
+mutation DeleteCloudAccount ($id: ID!) {
+  deleteCloudAccount(input: {id: $id}) {
+    id
+  }
+}
