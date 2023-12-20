@@ -56,13 +56,13 @@ def to_hex(val: str) -> str:
         raise ValueError(f"Invalid ID: {val}")
     return val.replace("-", "")
 
-def execute_gql(queryfile: str, client: Client, variable_input: dict = {}) -> dict:
+def execute_gql(queryfile: str, client: Client, variable_values: dict = {}) -> dict:
     """ Extracts a gql query from a file, and executes it on the given client with the supplied
     input, if any. Also does some common error handling.
     """
     query = gql_from_file(queryfile)
     try:
-        return client.execute(query, variable_values=variable_input)
+        return client.execute(query, variable_values=variable_values)
     except TransportQueryError as e:
         for err in e.errors:
             msg = err.get("message", "")

@@ -3,7 +3,7 @@
 
 import gql
 
-from ._util import gql_from_file, UUID_REGEX, to_uuid
+from ._util import gql_from_file, UUID_REGEX, to_uuid, execute_gql
 
 
 class CloudAccountsInterface:
@@ -21,14 +21,12 @@ class CloudAccountsInterface:
             A list of cloud account integrations
         """
         # Get Cloud Accounts
-        query = gql_from_file("cloud_accounts/list.gql")
-
         accounts = []
         has_more = True
         cursor = None
 
         while has_more:
-            results = self.client.execute(query, variable_values={"cursor": cursor})
+            results = execute_gql("cloud_accounts/list.gql", self.client, variable_values={"cursor": cursor})
             accounts.extend([edge["node"] for edge in results["cloudAccounts"]["edges"]])
             has_more = results["cloudAccounts"].get("pageInfo", {}).get("hasNextPage")
             cursor = results["cloudAccounts"].get("pageInfo", {}).get("endCursor")
@@ -54,6 +52,5 @@ class CloudAccountsInterface:
         accountid = to_uuid(accountid)
 
         # Get Account
-        query = gql_from_file("cloud_accounts/get.gql")
-        result = self.client.execute(query, variable_values={"id": accountid})
+        result = execute_gql("cloud_accounts/get.gql", self.client, variable_values={"id": accountid})
         return result.get("cloudAccount")
