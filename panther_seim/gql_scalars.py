@@ -12,8 +12,7 @@ from . import _util
 
 
 async def update_schemas(client: gql.Client):
-    """ Queries the Panther backend and retrieves the graphql schemas for the client.
-    """
+    """Queries the Panther backend and retrieves the graphql schemas for the client."""
     async with client as _:
         schema = client.schema
         update_schema_scalars(schema, [DateTimeScalar])
