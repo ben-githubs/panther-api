@@ -8,8 +8,8 @@ from ._util import SNOWFLAKE_IDENTIFIER_UNQUOTED_REGEX, execute_gql
 
 
 class DatabaseInterface:
-    """An interface for working with the datalake and queries in Panther. An instance of this class
-    will be attached to the Panther client object.
+    """An interface for working with databases in Panther. An instance of this class will be
+    attached to the Panther client object.
     """
 
     def __init__(self, client: gql.Client):
