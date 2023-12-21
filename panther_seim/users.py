@@ -2,10 +2,7 @@
 """
 
 import gql
-from gql.transport.exceptions import TransportQueryError
-
-from .exceptions import EntityNotFoundError
-from ._util import gql_from_file, EMAIL_REGEX, execute_gql
+from ._util import EMAIL_REGEX, execute_gql
 
 
 class UsersInterface:
@@ -23,8 +20,7 @@ class UsersInterface:
             A list of user descriptions.
         """
         # Get Users
-        query = gql_from_file("users/list.gql")
-        result = self.client.execute(query)
+        result = execute_gql("users/list.gql", self.client)
         return result.get("users")
 
     def get(self, userid: str) -> dict:
@@ -44,23 +40,15 @@ class UsersInterface:
             raise TypeError(f"User ID must be a string, not '{type(userid).__name__}'.")
 
         # Invoke API
-        try:
-            if EMAIL_REGEX.fullmatch(userid):
-                # This is an email
-                query = gql_from_file("users/get_by_email.gql")
-                result = self.client.execute(query, variable_values={"email": userid})
-                return result.get("userByEmail")
-            # This is an ID
-            query = gql_from_file("users/get_by_id.gql")
-            result = self.client.execute(query, variable_values={"id": userid})
-            return result.get("userById")
-        except TransportQueryError as e:
-            for err in e.errors:
-                msg = err.get("message", "")
-                if msg.endswith("does not exist"):
-                    raise EntityNotFoundError(msg) from e
-            # If we didn't catch the error above, raise the initial error
-            raise
+        if EMAIL_REGEX.fullmatch(userid):
+            # This is an email
+            result = execute_gql(
+                "users/get_by_email.gql", self.client, variable_values={"email": userid}
+            )
+            return result.get("userByEmail")
+        # This is an ID
+        result = execute_gql("users/get_by_id.gql", self.client, variable_values={"id": userid})
+        return result.get("userById")
 
     # pylint: disable=too-many-arguments, too-many-branches
     def update(
