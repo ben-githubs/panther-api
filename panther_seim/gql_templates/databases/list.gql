@@ -1,0 +1,15 @@
+query AllDatabaseEntities {
+  dataLakeDatabases {
+     name
+     description
+     tables {
+       name
+       description
+       columns {
+         name
+         description
+         type
+       }
+     }
+   }
+ }

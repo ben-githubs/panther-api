@@ -14,12 +14,13 @@ from gql.transport.aiohttp import AIOHTTPTransport
 
 from .alerts import AlertsInterface
 from .cloud_accounts import CloudAccountsInterface
+from .databases import DatabaseInterface
 from .users import UsersInterface
 
 from .gql_scalars import update_schemas
 
 
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods, too-many-instance-attributes
 class Panther:
     """A client object for interacting with Panther's public API."""
 
@@ -54,6 +55,7 @@ class Panther:
 
         self.alerts = AlertsInterface(self._gql())
         self.cloud_accounts = CloudAccountsInterface(self._gql())
+        self.databases = DatabaseInterface(self._gql())
         self.users = UsersInterface(self._gql())
 
     def _gql(self) -> gql.Client:
