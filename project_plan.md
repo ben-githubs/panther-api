@@ -22,12 +22,12 @@ We expect the following interfaces.
     - delete: remove a cloud account
   - datalake
     - list: returns a list of databses, tables, and columns
-    - queries:
-      - search_simple: create and execute a Search query
-      - search_sql: create and execute a Data Explorer query
-      - list: reutrns a list of current and previous queries, according to your filter
-      - cancel: cancel a runnign query
-      - get: return the details of a specific query
+    - get: same as above, but for a single database
+  - queries
+    - execute: run a query
+    - results: fetch the results of a query
+    - get: return metadata about a query
+    - list: returns a list of previously-run queries
   - log_sources
     - list: returns a list of all log sources
     - get: returns all details of a particular log source

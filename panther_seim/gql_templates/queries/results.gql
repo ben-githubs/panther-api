@@ -1,0 +1,12 @@
+# `QueryResults` is a nickname for the operation
+query QueryResults ($id: ID!) {
+  dataLakeQuery(id: $id) { # the unique ID of the query
+    message
+    status
+    results {
+      edges {
+        node
+      }
+    }
+  }
+}
