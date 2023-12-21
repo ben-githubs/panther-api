@@ -12,6 +12,7 @@ from gql.transport.exceptions import TransportQueryError
 import pytz
 
 from .exceptions import EntityNotFoundError, AccessDeniedError
+
 # This variable defines the root of the package on the filesystem, and allows us to import files
 #   from within the package.
 PACKAGE_ROOT = Path(__file__).parent.absolute()
@@ -21,6 +22,42 @@ UUID_REGEX = re.compile(
     r"[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}"
 )
 EMAIL_REGEX = re.compile(r"[\w\-\.]+@([\w-]+\.)+[\w-]{2,4}")
+
+ARN_REGEX = re.compile(r"arn:aws:iam::\d{12}:role\/[\w+=,.@\/-]{1,128}")
+
+# AWS Regions
+AWS_REGIONS = {
+    "us-east-2",
+    "us-east-1",
+    "us-west-1",
+    "us-west-2",
+    "af-south-1",
+    "ap-east-1",
+    "ap-south-2",
+    "ap-southeast-3",
+    "ap-southeast-4",
+    "ap-south-1",
+    "ap-northeast-3",
+    "ap-northeast-2",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ap-northeast-1",
+    "ca-central-1",
+    "eu-central-1",
+    "eu-west-1",
+    "eu-west-2",
+    "eu-south-1",
+    "eu-west-3",
+    "eu-south-2",
+    "eu-north-1",
+    "eu-central-2",
+    "il-central-1",
+    "me-south-1",
+    "me-central-1",
+    "sa-east-1",
+    "us-gov-east-1",
+    "us-gov-west-1",
+}
 
 
 # Panther is really weird. Some entites, like alerts, can only be referenced by IDs in hexadecimal
@@ -56,21 +93,26 @@ def to_hex(val: str) -> str:
         raise ValueError(f"Invalid ID: {val}")
     return val.replace("-", "")
 
-def execute_gql(queryfile: str, client: Client, variable_input: dict = {}) -> dict:
-    """ Extracts a gql query from a file, and executes it on the given client with the supplied
+
+def execute_gql(queryfile: str, client: Client, variable_values: dict = None) -> dict:
+    """Extracts a gql query from a file, and executes it on the given client with the supplied
     input, if any. Also does some common error handling.
     """
+    if variable_values is None:
+        variable_values = {}
     query = gql_from_file(queryfile)
     try:
-        return client.execute(query, variable_values=variable_input)
+        return client.execute(query, variable_values=variable_values)
     except TransportQueryError as e:
         for err in e.errors:
             msg = err.get("message", "")
             if msg.endswith("does not exist"):
                 raise EntityNotFoundError(msg) from e
-            elif msg == "access denied":
-                method_name = e.get("path", ["<UNKNWON_METHOD>"])[-1]
-                raise AccessDeniedError(f"API Token is not permitted to call method {method_name}")
+            if msg == "access denied":
+                method_name = err.get("path", ["<UNKNWON_METHOD>"])[-1]
+                raise AccessDeniedError(
+                    f"API Token is not permitted to call method {method_name}"
+                ) from e
         # If we didn't catch the error above, raise the initial error
         raise
 

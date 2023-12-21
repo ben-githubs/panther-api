@@ -123,7 +123,7 @@ class TestUpdate:
         self.client.update(
             "id",
             email="foo.bar@baz.com",
-            givenName="foo",
-            familyName = "bar",
+            given_name="foo",
+            family_name = "bar",
             role_id = "roleID"
         )

@@ -1,0 +1,7 @@
+mutation CreateCloudAccount ($input: CreateCloudAccountInput!) {
+  createCloudAccount(input: $input) {
+    cloudAccount {
+      id
+    }
+  }
+}

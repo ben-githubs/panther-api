@@ -111,7 +111,7 @@ class AlertsInterface:
         )
         return result.get("createAlertComment")
 
-    def update( # pylint: disable=too-many-branches
+    def update(  # pylint: disable=too-many-branches
         self, alertids: typing.List[str] | str, status: str = None, assignee: str = None
     ) -> dict:
         """Make changes to the status or assignee of an alert.
