@@ -1,9 +1,12 @@
 """ Code for interacting with alerts is specified here.
 """
 
+import time
 from typing import List
 
 import gql
+
+from panther_seim.exceptions import QueryCancelled, QueryError
 from ._util import execute_gql, UUID_REGEX, to_uuid
 
 class QueriesInterface:
@@ -79,4 +82,71 @@ class QueriesInterface:
             rows.extend([edge["node"] for edge in results["results"]["edges"]])
         return results["status"], results["message"], rows
 
+    def execute(
+            self,
+            sql: str,
+            status_dict: dict = None,
+            refresh: int | float = None
+        ) -> List[dict]:
+        """Executes a query and waits for it to complete, then fetches the results.
+
+        Args:
+            sql (str): The SQL code to run as the query.
+            status_dict (dict, optional): A dictionary used to store the most recent query status,
+                and message. This is useful for troubleshooting if the query is failing and the
+                function isn't returning any data.
+            refresh (int, float, optional): How many seconds to wait between checks on the query.
+                By default, we poll once per second for the first 20 seconds, and once per ten 
+                seconds thereafter.
         
+        Returns:
+            The query results.
+        """
+        # -- Validate
+        if not isinstance(sql, str):
+            raise TypeError(f"Parameter 'SQL' must be a string; got '{type(sql).__name__}'.")
+        # We won't bother validating the SQL syntax, since we can't know what's a valid object name
+        #   in the datalake until we compile the SQL.
+
+        if status_dict is None:
+            status_dict = {}
+        if not isinstance(status_dict, dict):
+            raise TypeError(
+                "Parameter 'status_dict' must be a dictionary; "
+                f"got '{type(status_dict).__name__}'."
+            )
+        if refresh is not None:
+            if not any(isinstance(sql, _type) for _type in (int, float)):
+                raise TypeError(
+                    f"Parameter 'refresh' must be an int or a float; got '{type(refresh).__name__}'."
+                )
+            if refresh <= 0:
+                raise ValueError("Parameter 'refresh' must be greater than zero.")
+        
+        # -- API Calls
+        # Create the query
+        query_id = self.execute_async(sql)
+        status, message, results = self.results(query_id)
+        status_dict["status"] = status
+        status_dict["message"] = message
+
+        n_loops = 0
+        while status == "running":
+            if refresh is not None:
+                time.sleep(refresh)
+            else:
+                time.sleep(1 if n_loops < 20 else 10)
+            status, message, results = self.results(query_id)
+            n_loops += 1
+        
+        # By now, the query is completed.
+        match status:
+            case "succeeded":
+                return results
+            case "cancelled":
+                raise QueryCancelled(message)
+            case "failed":
+                raise QueryError(message)
+            case _:
+                # Status didn't match any of the expected values
+                raise QueryError(f"Query returned with invalid status: {status}")
