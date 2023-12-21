@@ -119,7 +119,7 @@ class CloudAccountsInterface:
                     raise ValueError(f"Invalid region to ignore: {region}")
 
         if resource_regex_ignore is not None:
-            if not isinstance(resource_regex_ignore, str):
+            if not isinstance(resource_regex_ignore, list):
                 raise TypeError(
                     "Regex ignore list must be a list; "
                     f"got '{type(resource_regex_ignore).__name__}'."
@@ -131,11 +131,17 @@ class CloudAccountsInterface:
                     )
 
         if resource_type_ignore is not None:
-            if not isinstance(resource_type_ignore, str):
+            if not isinstance(resource_type_ignore, list):
                 raise TypeError(
                     "Resource ignore list must be a list; "
                     f"got '{type(resource_type_ignore).__name__}'."
                 )
+            for item in resource_type_ignore:
+                if not isinstance(item, str):
+                    raise TypeError(
+                        "Resource ignore list has a non-strimg member; "
+                        f"got '{type(item).__name__}'."
+                    )
             # Maintaining a list of supported resources here would be difficult, and for little
             #   benefit. Panther's API doesn't do this anyway, so there's no expectation that we
             #   would.
