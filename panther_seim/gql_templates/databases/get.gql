@@ -1,0 +1,15 @@
+query DatabaseEntities ($database: String!) {
+  dataLakeDatabase(name: $database) {
+     name
+     description
+     tables {
+       name
+       description
+       columns {
+         name
+         description
+         type
+       }
+     }
+  }
+}

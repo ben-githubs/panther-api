@@ -16,3 +16,10 @@ class AccessDeniedError(PantherError):
 
 class EntityAlreadyExistsError(PantherError):
     """Raised when the user tries to create an entity, but it already exists in Panther."""
+
+
+class QueryCancelled(PantherError):
+    """Raised when a query has been cancelled by the user."""
+
+class QueryError(PantherError):
+    """Raised when a query errored during execution."""

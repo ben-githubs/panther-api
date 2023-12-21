@@ -1,0 +1,5 @@
+mutation IssueDataLakeQuery ($sql: String!) {
+  executeDataLakeQuery(input: {sql: $sql}) {
+     id # the unique ID of the query
+  }
+}

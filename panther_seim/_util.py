@@ -17,13 +17,16 @@ from .exceptions import EntityNotFoundError, AccessDeniedError
 #   from within the package.
 PACKAGE_ROOT = Path(__file__).parent.absolute()
 
-# Regex Patterns
+# -- Regex Patterns
 UUID_REGEX = re.compile(
     r"[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}"
 )
 EMAIL_REGEX = re.compile(r"[\w\-\.]+@([\w-]+\.)+[\w-]{2,4}")
 
 ARN_REGEX = re.compile(r"arn:aws:iam::\d{12}:role\/[\w+=,.@\/-]{1,128}")
+
+# For source, see https://docs.snowflake.com/en/sql-reference/identifiers-syntax
+SNOWFLAKE_IDENTIFIER_UNQUOTED_REGEX = re.compile(r"[a-zA-Z_][\w\$\.]*")
 
 # AWS Regions
 AWS_REGIONS = {
