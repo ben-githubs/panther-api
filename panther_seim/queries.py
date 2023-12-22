@@ -116,7 +116,7 @@ class QueriesInterface:
                 f"got '{type(status_dict).__name__}'."
             )
         if refresh is not None:
-            if not any(isinstance(sql, _type) for _type in (int, float)):
+            if not any(isinstance(refresh, _type) for _type in (int, float)):
                 raise TypeError(
                     f"Parameter 'refresh' must be an int or a float; got '{type(refresh).__name__}'."
                 )
