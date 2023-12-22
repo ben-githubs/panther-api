@@ -16,3 +16,6 @@ install-dev:
 
 test:
 	poetry run pytest tests/
+
+test-live:
+	TEST_LIVE=true poetry run pytest tests/
