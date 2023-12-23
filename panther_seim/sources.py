@@ -15,7 +15,7 @@ ALLOWED_STREAM_TYPES = {
     "jsonarray": "JsonArray",
     "lines": "Lines"
 }
-LOG_SOURCE_LABEL = re.compile(r"\w+")
+LOG_SOURCE_LABEL = re.compile(r"[\ a-zA-Z\d]+")
 
 class SourcesInterface:
     """An interface for working with queries in Panther. An instance of this class will be attached
@@ -160,40 +160,40 @@ class S3Interface():
         for x, conf in enumerate(prefix_config):
             if not isinstance(conf, dict):
                 raise TypeError(
-                    f"'prefix_config.{x}' must be a dictionary; got {type(conf).__type__}."
+                    f"'prefix_config.{x}' must be a dictionary; got {type(conf).__name__}."
                 )
             if "prefix" not in conf:
                 raise ValueError(f"'prefix_config.{x}' is missing the required field 'prefix'.")
             if not isinstance(conf["prefix"], str):
                 raise TypeError(
                     f"'prefix_config.{x}.prefix must be a string; "
-                    f"got {type(conf['prefix']).__type__}."
+                    f"got {type(conf['prefix']).__name__}."
                 )
             if "log_types" not in conf:
                 raise ValueError(f"'prefix_config.{x}' is missing the required field 'log_types'.")
             if not isinstance(conf["log_types"], List):
                 raise TypeError(
                     f"'prefix_config.{x}.log_types must be a list; "
-                    f"got {type(conf['log_types']).__type__}."
+                    f"got {type(conf['log_types']).__name__}."
                 )
             for y, log_type in enumerate(conf["log_types"]):
                 if not isinstance(log_type, str):
                     raise TypeError(
                         f"'prefix_config.{x}.log_types.{y} must be a string; "
-                        f"got {type(log_type).__type__}."
+                        f"got {type(log_type).__name__}."
                     )
             if "excluded_prefixes" not in conf:
                 raise ValueError(f"'prefix_config.{x}' is missing the required field 'excluded_prefixes'.")
             if not isinstance(conf["excluded_prefixes"], List):
                 raise TypeError(
                     f"'prefix_config.{x}.excluded_prefixes must be a list; "
-                    f"got {type(conf['excluded_prefixes']).__type__}."
+                    f"got {type(conf['excluded_prefixes']).__name__}."
                 )
             for y, prefix in enumerate(conf["excluded_prefixes"]):
                 if not isinstance(prefix, str):
                     raise TypeError(
                         f"'prefix_config.{x}.excluded_prefixes.{y} must be a string; "
-                        f"got {type(prefix).__type__}."
+                        f"got {type(prefix).__name__}."
                     )
         
         if not isinstance(stream_type, str):
@@ -243,4 +243,4 @@ class S3Interface():
             self.client,
             variable_values = { "input": vargs }
         )
-        return result["logSoure"]["integrationId"]
+        return result["logSource"]["integrationId"]
