@@ -1,0 +1,17 @@
+query list ($cursor: String) {
+    sources(input: { cursor: $cursor}) {
+        edges {
+            node {
+                integrationId
+                integrationLabel
+                integrationType
+            }
+        }
+        pageInfo {
+            endCursor
+            hasNextPage
+            hasPreviousPage
+            startCursor
+        }
+    }
+}

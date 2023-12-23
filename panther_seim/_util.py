@@ -23,7 +23,10 @@ UUID_REGEX = re.compile(
 )
 EMAIL_REGEX = re.compile(r"[\w\-\.]+@([\w-]+\.)+[\w-]{2,4}")
 
-ARN_REGEX = re.compile(r"arn:aws:iam::\d{12}:role\/[\w+=,.@\/-]{1,128}")
+IAM_ARN_REGEX = re.compile(r"arn:aws:iam::\d{12}:role\/[\w+=,.@\/-]{1,128}")
+KMS_ARN_REGEX = re.compile(r"arn:aws:kms:[a-z]+-[a-z]+-\d:\d{12}:key\/[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}") # pylint: disable=line-too-long
+
+S3_BUCKET_NAME_REGEX = re.compile(r"[a-z\d][a-z\d.-]{1,61}[a-z\d]")
 
 # For source, see https://docs.snowflake.com/en/sql-reference/identifiers-syntax
 SNOWFLAKE_IDENTIFIER_UNQUOTED_REGEX = re.compile(r"[a-zA-Z_][\w\$\.]*")
@@ -109,7 +112,7 @@ def execute_gql(queryfile: str, client: Client, variable_values: dict = None) ->
     except TransportQueryError as e:
         for err in e.errors:
             msg = err.get("message", "")
-            if msg.endswith("does not exist"):
+            if msg.endswith("does not exist") or msg.endswith("not found"):
                 raise EntityNotFoundError(msg) from e
             if msg == "access denied":
                 method_name = err.get("path", ["<UNKNWON_METHOD>"])[-1]

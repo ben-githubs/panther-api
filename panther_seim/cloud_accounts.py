@@ -7,7 +7,7 @@ import gql
 from gql.transport.exceptions import TransportQueryError
 from .exceptions import EntityAlreadyExistsError
 
-from ._util import UUID_REGEX, to_uuid, execute_gql, AWS_REGIONS, ARN_REGEX
+from ._util import UUID_REGEX, to_uuid, execute_gql, AWS_REGIONS, IAM_ARN_REGEX
 
 
 class CloudAccountsInterface:
@@ -96,9 +96,9 @@ class CloudAccountsInterface:
 
         if not isinstance(audit_role, str):
             raise TypeError(f"Audit role ARN must be a string; got '{type(audit_role).__name__}'.")
-        if not ARN_REGEX.fullmatch(audit_role):
+        if not IAM_ARN_REGEX.fullmatch(audit_role):
             raise ValueError(
-                f"Invalid audit IAM role arn: '{audit_role}' does not match {ARN_REGEX.pattern}"
+                f"Invalid audit IAM role arn: '{audit_role}' does not match {IAM_ARN_REGEX.pattern}"
             )
 
         if not isinstance(label, str):
@@ -230,9 +230,9 @@ class CloudAccountsInterface:
 
         if not isinstance(audit_role, str):
             raise TypeError(f"Audit role ARN must be a string; got '{type(audit_role).__name__}'.")
-        if not ARN_REGEX.fullmatch(audit_role):
+        if not IAM_ARN_REGEX.fullmatch(audit_role):
             raise ValueError(
-                f"Invalid audit IAM role arn: '{audit_role}' does not match {ARN_REGEX.pattern}"
+                f"Invalid audit IAM role arn: '{audit_role}' does not match {IAM_ARN_REGEX.pattern}"
             )
 
         if not isinstance(label, str):

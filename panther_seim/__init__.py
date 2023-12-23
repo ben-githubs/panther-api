@@ -16,6 +16,7 @@ from .alerts import AlertsInterface
 from .cloud_accounts import CloudAccountsInterface
 from .databases import DatabaseInterface
 from .queries import QueriesInterface
+from .sources import SourcesInterface
 from .users import UsersInterface
 
 from .gql_scalars import update_schemas
@@ -58,6 +59,7 @@ class Panther:
         self.cloud_accounts = CloudAccountsInterface(self._gql())
         self.databases = DatabaseInterface(self._gql())
         self.queries = QueriesInterface(self._gql())
+        self.sources = SourcesInterface(self._gql())
         self.users = UsersInterface(self._gql())
 
     def _gql(self) -> gql.Client:
