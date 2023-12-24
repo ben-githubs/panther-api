@@ -15,7 +15,7 @@ ALLOWED_STREAM_TYPES = {
     "jsonarray": "JsonArray",
     "lines": "Lines"
 }
-LOG_SOURCE_LABEL = re.compile(r"[\ a-zA-Z\d]+")
+LOG_SOURCE_LABEL = re.compile(r"[\ a-zA-Z\d-]+")
 
 class SourcesInterface:
     """An interface for working with queries in Panther. An instance of this class will be attached
@@ -243,4 +243,4 @@ class S3Interface():
             self.client,
             variable_values = { "input": vargs }
         )
-        return result["logSource"]["integrationId"]
+        return result["createS3Source"]["logSource"]["integrationId"]

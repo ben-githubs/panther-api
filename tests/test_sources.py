@@ -1,7 +1,13 @@
+import os
+
 from graphql import DocumentNode
+from dotenv import load_dotenv
 import pytest
 
+from panther_seim import Panther
 from panther_seim.sources import SourcesInterface
+
+load_dotenv(".env")
 
 class TestGet():
     class FakeClient:
@@ -88,8 +94,10 @@ class TestCreateS3():
             assert isinstance(variable_values, dict)
 
             return {
-                "logSource": {
-                    "integrationId": "INTEGRATION_ID"
+                "createS3Source": {
+                    "logSource": {
+                        "integrationId": "INTEGRATION_ID"
+                    }
                 }
             }
 
@@ -440,6 +448,21 @@ class TestCreateS3():
             "auto",
             True,
             "arn:aws:kms:us-west-2:111122223333:key/6b9dfd29-bbce-4f1a-a470-ce3db35d48db"
+        ),(
+            "With-Dashes-In-Label",
+            "000000000001",
+            "testbucket-1a5ef9",
+            "arn:aws:iam::380117727860:role/panther-log-source",
+            [{
+                "prefix": "/logs",
+                "log_types": [
+                    "AWS.CloudTrail"
+                ],
+                "excluded_prefixes": []
+            }],
+            "auto",
+            True,
+            None
         )
     ])
     def test_valid(self, label, account_id, bucket, iam_role, prefix_config, stream_type, manage_bucket_notifications, kms_key):
@@ -454,3 +477,46 @@ class TestCreateS3():
             kms_key = kms_key
         )
         assert source_id == "INTEGRATION_ID"
+
+
+@pytest.mark.skipif(os.environ.get("TEST_LIVE") is None, reason="Live testing is not enabled.")
+def test_integrated():
+    panther = Panther(
+        os.environ.get("PANTHER_API_TOKEN"),
+        os.environ.get("PANTHER_API_DOMAIN"),
+        auto_convert = True
+    )
+    acct_id = os.environ.get("TEST_AWS_ACCOUNT")
+    assert acct_id is not None, "No AWS account ID specified for testing."
+    
+    bucket = os.environ.get("TEST_S3_SRC_BUCKET")
+    assert bucket is not None, "No S3 bucket specified for testing."
+
+    role = os.environ.get("TEST_S3_SRC_IAM_ROLE")
+    assert role is not None, "No IAM Role specified for testing."
+
+    label = "pypanther-test-src"
+
+    # Create the log source
+    src_id = panther.sources.s3.create(
+        label,
+        acct_id,
+        bucket,
+        role,
+        [{
+            "prefix": "/",
+            "log_types": ["AWS.CloudTrail"],
+            "excluded_prefixes": []
+        }],
+        "auto",
+        True
+    )
+
+    # Get the Log Source
+    src = panther.sources.get(src_id)
+
+    assert src["integrationId"] == src_id
+    assert src["integrationLabel"] == label
+
+    # Delete the Source
+    panther.sources.delete(src_id)
