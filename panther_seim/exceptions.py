@@ -21,5 +21,6 @@ class EntityAlreadyExistsError(PantherError):
 class QueryCancelled(PantherError):
     """Raised when a query has been cancelled by the user."""
 
+
 class QueryError(PantherError):
     """Raised when a query errored during execution."""

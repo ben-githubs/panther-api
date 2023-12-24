@@ -9,6 +9,7 @@ import gql
 from panther_seim.exceptions import QueryCancelled, QueryError
 from ._util import execute_gql, UUID_REGEX, to_uuid
 
+
 class QueriesInterface:
     """An interface for working with queries in Panther. An instance of this class will be attached
     to the Panther client object.
@@ -16,14 +17,14 @@ class QueriesInterface:
 
     def __init__(self, client: gql.Client):
         self.client = client
-    
+
     def execute_async(self, sql: str) -> str:
-        """Executes a SQL query asynchronously in the data lake. Results can be fetched at a later 
+        """Executes a SQL query asynchronously in the data lake. Results can be fetched at a later
         time using the query ID.
 
         Args:
             sql (str): The SQL code to run as the query.
-        
+
         Returns:
             The ID of the newly-created query.
         """
@@ -35,23 +36,21 @@ class QueriesInterface:
         #   in the datalake until we compile the SQL.
 
         # -- API Call
-        vargs = {
-            'sql': sql
-        }
+        vargs = {"sql": sql}
         results = execute_gql("queries/execute.gql", self.client, variable_values=vargs)
         return results["executeDataLakeQuery"]["id"]
-    
+
     def results(self, query_id: str) -> tuple[str, str, List[dict]]:
         """Fetches the status of a running query, or the results, if the query is finished.
-        
+
         Args:
             query_id (str): The ID of the query to fetch.
-        
+
         Returns:
             status (str): The status of the query. Allowed values are 'cancelled', 'failed',
                 'running', and 'succeeded'.
             message (str): A string that describes the current status of the query.
-            results (list[dict]): The results the query yielded. This field will be None if the 
+            results (list[dict]): The results the query yielded. This field will be None if the
                 query hasn't successully completed.
         """
         # -- Validate
@@ -67,12 +66,12 @@ class QueriesInterface:
         # -- API Call
         vargs = {"id": query_id}
         resp = execute_gql("queries/results.gql", self.client, variable_values=vargs)
-        
+
         # If the query hasn't returned results, return the status and message
         results = resp["dataLakeQuery"]
         if results["status"] != "succeeded":
             return results["status"], results["message"], None
-        
+
         # Else, fetch all the results
         rows = [edge["node"] for edge in results["results"]["edges"]]
         while results.get("pageInfo", {}).get("hasNextPage", False):
@@ -83,11 +82,8 @@ class QueriesInterface:
         return results["status"], results["message"], rows
 
     def execute(
-            self,
-            sql: str,
-            status_dict: dict = None,
-            refresh: int | float = None
-        ) -> List[dict]:
+        self, sql: str, status_dict: dict = None, refresh: int | float = None
+    ) -> List[dict]:
         """Executes a query and waits for it to complete, then fetches the results.
 
         Args:
@@ -96,9 +92,9 @@ class QueriesInterface:
                 and message. This is useful for troubleshooting if the query is failing and the
                 function isn't returning any data.
             refresh (int, float, optional): How many seconds to wait between checks on the query.
-                By default, we poll once per second for the first 20 seconds, and once per ten 
+                By default, we poll once per second for the first 20 seconds, and once per ten
                 seconds thereafter.
-        
+
         Returns:
             The query results.
         """
@@ -118,11 +114,12 @@ class QueriesInterface:
         if refresh is not None:
             if not any(isinstance(refresh, _type) for _type in (int, float)):
                 raise TypeError(
-                    f"Parameter 'refresh' must be an int or a float; got '{type(refresh).__name__}'."
+                    "Parameter 'refresh' must be an int or a float; "
+                    f"got '{type(refresh).__name__}'."
                 )
             if refresh <= 0:
                 raise ValueError("Parameter 'refresh' must be greater than zero.")
-        
+
         # -- API Calls
         # Create the query
         query_id = self.execute_async(sql)
@@ -138,7 +135,7 @@ class QueriesInterface:
                 time.sleep(1 if n_loops < 20 else 10)
             status, message, results = self.results(query_id)
             n_loops += 1
-        
+
         # By now, the query is completed.
         match status:
             case "succeeded":

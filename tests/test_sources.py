@@ -478,6 +478,84 @@ class TestCreateS3():
         )
         assert source_id == "INTEGRATION_ID"
 
+class TestUpdateS3():
+    class FakeClient:
+        def execute(self, query, variable_values = dict()):
+            assert isinstance(query, DocumentNode)
+            assert isinstance(variable_values, dict)
+
+            return {
+                "updateS3Source": {
+                    "logSource": {
+                        "integrationId": "INTEGRATION_ID"
+                    }
+                }
+            }
+
+    sources = SourcesInterface(FakeClient())
+
+    @pytest.mark.parametrize("source_id", [
+        10, # int
+        1.1, # float
+        None, # NoneType
+        [''], # list
+        ('',), # tuple,
+        {'foo': 'bar'}, # dict
+        {'foo', 'bar'}, # set
+    ])
+    def test_invalid_id_type(self, source_id):
+        with pytest.raises(TypeError):
+            self.sources.s3.update(source_id, label="foo")
+    
+    @pytest.mark.parametrize("source_id", [
+        "c73bcdcc-2669-4bf6-81d3-e4an73fb11fd",
+        "c73bcdcc26694bf681d3e4an73fb11fd",
+        "definitely-not-a-uuid"
+    ])
+    def test_invalid_id_value(self, source_id):
+        with pytest.raises(ValueError):
+            self.sources.s3.update(source_id, label="foo")
+    
+    @pytest.mark.parametrize(("source_id", "kwargs"), [
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"label": 10}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"iam_role": 10}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"prefix_config": 10}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"prefix_config": [{
+            "prefix": 11, "log_types": [ "AWS.CloudTrail" ], "excluded_prefixes": []
+        }]}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"prefix_config": [{
+            "prefix": "/logs", "log_types": "AWS.CloudTrail", "excluded_prefixes": []
+        }]}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"prefix_config": [{
+            "prefix": "/logs", "log_types": [ "AWS.CloudTrail" ], "excluded_prefixes": None
+        }]}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"stream_type": 10}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"manage_bucket_notifications": 10}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"kms_key": 10})
+    ])
+    def test_invalid_types(self, source_id, kwargs):
+        with pytest.raises(TypeError):
+            self.sources.s3.update(source_id, **kwargs)
+    
+    @pytest.mark.parametrize(("source_id", "kwargs"), [
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"label": "with_underscore"}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"iam_role": "not an ARN"}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"prefix_config": [{
+            "log_types": [], "excluded_prefixes": []
+        }]}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"prefix_config": [{
+            "prefix": "", "excluded_prefixes": []
+        }]}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"prefix_config": [{
+            "log_types": [], "prefix": ""
+        }]}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"stream_type": "invalid option"}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"kms_key": "not an ARN"}),
+        ("c73bcdcc26694bf681d3e4ae73fb11fd", {"kms_key": "arn:aws:kms:region:111111111111:key/6b9dfd29-bbce-4f1a-a470-ce3db35d48db"})
+    ])
+    def test_invalid_values(self, source_id, kwargs):
+        with pytest.raises(ValueError):
+            self.sources.s3.update(source_id, **kwargs)
 
 @pytest.mark.skipif(os.environ.get("TEST_LIVE") is None, reason="Live testing is not enabled.")
 def test_integrated():
@@ -512,11 +590,22 @@ def test_integrated():
         True
     )
 
-    # Get the Log Source
-    src = panther.sources.get(src_id)
+    try:
+        # Get the Log Source
+        src = panther.sources.get(src_id)
 
-    assert src["integrationId"] == src_id
-    assert src["integrationLabel"] == label
+        assert src["integrationId"] == src_id
+        assert src["integrationLabel"] == label
 
-    # Delete the Source
-    panther.sources.delete(src_id)
+        # Update the Source
+        panther.sources.s3.update(src_id, label=f"{label}-updated")
+
+        # Get the Log Source
+        src = panther.sources.get(src_id)
+
+        assert src["integrationId"] == src_id
+        assert src["integrationLabel"] == f"{label}-updated"
+
+    finally:
+        # Delete the Source
+        panther.sources.delete(src_id)
