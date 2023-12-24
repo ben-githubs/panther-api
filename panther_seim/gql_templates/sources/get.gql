@@ -1,0 +1,22 @@
+query get ($id: ID!) {
+  source(id: $id) {
+    createdAtTime
+    createdBy {
+      ... on User {
+        id
+      }
+      ... on APIToken {
+        id
+      }
+    }
+    integrationId
+    integrationLabel
+    integrationType
+    isEditable
+    isHealthy
+    lastEventProcessedAtTime
+    lastEventReceivedAtTime
+    lastModified
+    logTypes
+  }
+}

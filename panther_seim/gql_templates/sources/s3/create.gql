@@ -1,0 +1,7 @@
+mutation create ($input: CreateS3SourceInput!) {
+  createS3Source(input: $input) {
+    logSource {
+      integrationId
+    }
+  }
+}

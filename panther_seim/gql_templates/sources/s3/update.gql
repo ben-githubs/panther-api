@@ -1,0 +1,16 @@
+mutation update ($input: UpdateS3SourceInput!) {
+  updateS3Source(input: $input) {
+    logSource {
+      createdAtTime
+      integrationId
+      integrationLabel
+      integrationType
+      isEditable
+      isHealthy
+      lastEventProcessedAtTime
+      lastEventReceivedAtTime
+      lastModified
+      logTypes
+    }
+  }
+}
