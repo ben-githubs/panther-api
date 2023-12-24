@@ -33,7 +33,7 @@ class SourcesInterface:
 
     def __init__(self, client: gql.Client):
         self.client = client
-        self.s3 = S3Interface(client)
+        self.s3 = S3Interface(client, self)
 
     def list(self) -> List[dict]:
         """Lists all log sources configured in Panther.
@@ -96,8 +96,9 @@ class SourcesInterface:
 class S3Interface:  # pylint: disable=too-many-arguments, too-many-branches, too-many-locals, too-many-statements
     """An interface for creating and updating S3 log sources."""
 
-    def __init__(self, client: gql.Client):
+    def __init__(self, client: gql.Client, source: SourcesInterface):
         self.client = client
+        self.source = source
 
     def create(
         self,
@@ -388,7 +389,8 @@ class S3Interface:  # pylint: disable=too-many-arguments, too-many-branches, too
                 raise ValueError(f"Invalid region for 'kms_key': {region}")
 
         # -- Invoke API
-        vargs = {"id": source_id}
+        # Override the previous config attributes, if we specified new values for them in the 
+        #   function params.
         if kms_key:
             vargs["kmsKey"] = kms_key
         if label:
@@ -410,6 +412,7 @@ class S3Interface:  # pylint: disable=too-many-arguments, too-many-branches, too
                     }
                 )
 
+        # Make API call and return the new config.
         results = execute_gql(
             "sources/s3/update.gql", self.client, variable_values={"input": vargs}
         )
