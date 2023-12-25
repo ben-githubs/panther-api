@@ -38,9 +38,7 @@ class UsersInterface(GraphInterfaceBase):
         # Invoke API
         if EMAIL_REGEX.fullmatch(userid):
             # This is an email
-            result = self.execute_gql(
-                "users/get_by_email.gql", {"email": userid}
-            )
+            result = self.execute_gql("users/get_by_email.gql", {"email": userid})
             return result.get("userByEmail")
         # This is an ID
         result = self.execute_gql("users/get_by_id.gql", {"id": userid})

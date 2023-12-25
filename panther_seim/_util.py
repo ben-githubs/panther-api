@@ -203,7 +203,7 @@ class GraphInterfaceBase:
     #   Since this is a baseclass, and the subclassess will have more methods defined, this warning
     #   isn't helpful.
     def __init__(self, root_client, gql_client: Client = None):
-        """ Initializes the Interface class.
+        """Initializes the Interface class.
 
         Args:
             root_client (Panther): the root Panther client.

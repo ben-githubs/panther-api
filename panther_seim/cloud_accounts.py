@@ -3,7 +3,6 @@
 
 import re
 import typing
-import gql
 from gql.transport.exceptions import TransportQueryError
 from .exceptions import EntityAlreadyExistsError
 
@@ -27,9 +26,7 @@ class CloudAccountsInterface(GraphInterfaceBase):
         cursor = None
 
         while has_more:
-            results = self.execute_gql(
-                "cloud_accounts/list.gql", {"cursor": cursor}
-            )
+            results = self.execute_gql("cloud_accounts/list.gql", {"cursor": cursor})
             accounts.extend([edge["node"] for edge in results["cloudAccounts"]["edges"]])
             has_more = results["cloudAccounts"].get("pageInfo", {}).get("hasNextPage")
             cursor = results["cloudAccounts"].get("pageInfo", {}).get("endCursor")
@@ -55,9 +52,7 @@ class CloudAccountsInterface(GraphInterfaceBase):
         accountid = to_uuid(accountid)
 
         # Get Account
-        result = self.execute_gql(
-            "cloud_accounts/get.gql", {"id": accountid}
-        )
+        result = self.execute_gql("cloud_accounts/get.gql", {"id": accountid})
         return result.get("cloudAccount")
 
     # pylint: disable=too-many-arguments, too-many-branches
@@ -156,9 +151,7 @@ class CloudAccountsInterface(GraphInterfaceBase):
         if resource_type_ignore:
             values["resourceTypeIgnoreList"] = resource_type_ignore
         try:
-            result = self.execute_gql(
-                "cloud_accounts/create.gql", {"input": values}
-            )
+            result = self.execute_gql("cloud_accounts/create.gql", {"input": values})
             print(result)
             return result["createCloudAccount"]["cloudAccount"]["id"]
         except TransportQueryError as e:
@@ -187,9 +180,7 @@ class CloudAccountsInterface(GraphInterfaceBase):
         accountid = to_uuid(accountid)
 
         # Invoke API
-        results = self.execute_gql(
-            "cloud_accounts/delete.gql", {"id": accountid}
-        )
+        results = self.execute_gql("cloud_accounts/delete.gql", {"id": accountid})
         print(results)
         return results["deleteCloudAccount"]["id"]
 
@@ -277,7 +268,5 @@ class CloudAccountsInterface(GraphInterfaceBase):
         if resource_type_ignore:
             values["resourceTypeIgnoreList"] = resource_type_ignore
 
-        result = self.execute_gql(
-            "cloud_accounts/update.gql", {"input": values}
-        )
+        result = self.execute_gql("cloud_accounts/update.gql", {"input": values})
         return result["updateCloudAccount"]["cloudAccount"]

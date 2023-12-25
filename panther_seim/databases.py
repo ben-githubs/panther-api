@@ -3,7 +3,6 @@
 
 from typing import List
 
-import gql
 from ._util import SNOWFLAKE_IDENTIFIER_UNQUOTED_REGEX, GraphInterfaceBase
 
 
