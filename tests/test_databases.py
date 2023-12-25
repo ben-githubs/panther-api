@@ -14,7 +14,7 @@ class FakeClient:
             }
         }
 
-client = DatabaseInterface(FakeClient())
+client = DatabaseInterface(None, FakeClient())
 
 @pytest.mark.parametrize("dbase", [
     11, # not a string

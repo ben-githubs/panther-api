@@ -57,7 +57,7 @@ class Panther:
 
         self.alerts = AlertsInterface(self, self._gql())
         self.cloud_accounts = CloudAccountsInterface(self, self._gql())
-        self.databases = DatabaseInterface(self._gql())
+        self.databases = DatabaseInterface(self, self._gql())
         self.queries = QueriesInterface(self, self._gql())
         self.sources = SourcesInterface(self, self._gql())
         self.users = UsersInterface(self._gql())
