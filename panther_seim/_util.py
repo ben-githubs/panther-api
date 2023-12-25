@@ -206,7 +206,7 @@ class GraphInterfaceBase:
         self.root = root_client
         self.client = gql_client
 
-    def execute(self, fname: str, vargs: dict = None) -> dict:
+    def execute_gql(self, fname: str, vargs: dict = None) -> dict:
         """Extracts a gql query from a file, and executes it on the given client with the supplied
         input, if any. Also does some common error handling.
 

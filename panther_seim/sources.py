@@ -41,7 +41,7 @@ class SourcesInterface(GraphInterfaceBase):
         """
         # -- Invoke API
         vargs = {"cursor": ""}
-        results = self.execute("sources/list.gql", vargs)
+        results = self.execute_gql("sources/list.gql", vargs)
         # This API call is weird - it is structured as if there is pagination, but there isn't.
         return [edge["node"] for edge in results["sources"]["edges"]]
 
@@ -66,7 +66,7 @@ class SourcesInterface(GraphInterfaceBase):
 
         # -- Invoke API
         vargs = {"id": source_id}
-        results = self.execute("sources/get.gql", vargs)
+        results = self.execute_gql("sources/get.gql", vargs)
 
         return results["source"]
 
@@ -88,7 +88,7 @@ class SourcesInterface(GraphInterfaceBase):
 
         # -- Invoke API
         vargs = {"id": source_id}
-        self.execute("sources/delete.gql", vargs)
+        self.execute_gql("sources/delete.gql", vargs)
 
 
 class S3Interface(GraphInterfaceBase):
@@ -244,7 +244,7 @@ class S3Interface(GraphInterfaceBase):
                 }
             )
 
-        result = self.execute("sources/s3/create.gql", {"input": vargs})
+        result = self.execute_gql("sources/s3/create.gql", {"input": vargs})
         return result["createS3Source"]["logSource"]["integrationId"]
 
     def update(
@@ -409,5 +409,5 @@ class S3Interface(GraphInterfaceBase):
                 )
 
         # Make API call and return the new config.
-        results = self.execute("sources/s3/update.gql", {"input": vargs})
+        results = self.execute_gql("sources/s3/update.gql", {"input": vargs})
         return results["updateS3Source"]["logSource"]
