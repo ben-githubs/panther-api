@@ -102,29 +102,6 @@ def to_hex(val: str) -> str:
     return val.replace("-", "")
 
 
-def execute_gql(queryfile: str, client: Client, variable_values: dict = None) -> dict:
-    """Extracts a gql query from a file, and executes it on the given client with the supplied
-    input, if any. Also does some common error handling.
-    """
-    if variable_values is None:
-        variable_values = {}
-    query = gql_from_file(queryfile)
-    try:
-        return client.execute(query, variable_values=variable_values)
-    except TransportQueryError as e:
-        for err in e.errors:
-            msg = err.get("message", "")
-            if msg.endswith("does not exist") or msg.endswith("not found"):
-                raise EntityNotFoundError(msg) from e
-            if msg == "access denied":
-                method_name = err.get("path", ["<UNKNWON_METHOD>"])[-1]
-                raise AccessDeniedError(
-                    f"API Token is not permitted to call method {method_name}"
-                ) from e
-        # If we didn't catch the error above, raise the initial error
-        raise
-
-
 def validate_timestamp(timestamp: int | str | datetime):
     """We allow all timestamps to be specified as integers (representing UNIX epoch time, strings
     (in ISO 8601 format), or as datetime objects. If a naive datetime object is passed, we assume
