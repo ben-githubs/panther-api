@@ -46,3 +46,43 @@ class MetricsInterface(GraphInterfaceBase):
             }
         }
         return self.execute_gql("metrics/all.gql", vargs)
+    
+    def alerts_per_rule(
+            self,
+            start: str | int | datetime,
+            end: str | int | datetime,
+        ) -> dict:
+        """Retreives a count of alerts, grouped by triggering rule, for the time period.
+
+        Args:
+            start (str, datetime): The start of the period to fetch metrics for.
+                When a string, it must be in ISO format. When an integer, it represents a Unix
+                timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
+                UTC is intended.
+            end (str, datetime): The end of the period to fetch metrics for.
+                When a string, it must be in ISO format. When an integer, it represents a Unix
+                timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
+                UTC is intended.
+        
+        Returns:
+            A dictionary with metrics on alerts, queries, and ingestion.
+        """
+        # -- Validate input
+        start = validate_timestamp(start)
+        end = validate_timestamp(end)
+
+        # -- Invoke API
+        vargs = {
+            "input": {
+                "fromDate": start,
+                "toDate": end
+            }
+        }
+        results = self.execute_gql("metrics/alerts_per_rule.gql", vargs)
+        data = dict()
+        for datum in results["metrics"]["alertsPerRule"]:
+            data[datum["entityId"]] = {
+                "count": datum["value"],
+                "rule_description": datum["label"]
+            }
+        return data
