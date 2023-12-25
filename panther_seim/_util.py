@@ -102,29 +102,6 @@ def to_hex(val: str) -> str:
     return val.replace("-", "")
 
 
-def execute_gql(queryfile: str, client: Client, variable_values: dict = None) -> dict:
-    """Extracts a gql query from a file, and executes it on the given client with the supplied
-    input, if any. Also does some common error handling.
-    """
-    if variable_values is None:
-        variable_values = {}
-    query = gql_from_file(queryfile)
-    try:
-        return client.execute(query, variable_values=variable_values)
-    except TransportQueryError as e:
-        for err in e.errors:
-            msg = err.get("message", "")
-            if msg.endswith("does not exist") or msg.endswith("not found"):
-                raise EntityNotFoundError(msg) from e
-            if msg == "access denied":
-                method_name = err.get("path", ["<UNKNWON_METHOD>"])[-1]
-                raise AccessDeniedError(
-                    f"API Token is not permitted to call method {method_name}"
-                ) from e
-        # If we didn't catch the error above, raise the initial error
-        raise
-
-
 def validate_timestamp(timestamp: int | str | datetime):
     """We allow all timestamps to be specified as integers (representing UNIX epoch time, strings
     (in ISO 8601 format), or as datetime objects. If a naive datetime object is passed, we assume
@@ -194,3 +171,53 @@ def gql_from_file(path: str | Path):
 
     # Create a new GQL query from the file contents, and return it
     return gql(contents)
+
+
+class GraphInterfaceBase:
+    """A base class for any interfaces which use a GraphQL backend."""
+
+    # pylint: disable=too-few-public-methods
+    #   Since this is a baseclass, and the subclassess will have more methods defined, this warning
+    #   isn't helpful.
+    def __init__(self, root_client, gql_client: Client = None):
+        """Initializes the Interface class.
+
+        Args:
+            root_client (Panther): the root Panther client.
+            gql_client (gql.Client): the GQL client to use for queries. If not specified, defaults
+                to the root_client's GQL client.
+        """
+        self.root = root_client
+        # It's useful to be able to specify a different client for testing purposes. Normally, I
+        #   wouldn't include an testing-only parameter as an init parameter, but since this class
+        #   should never be instantiated by an end user, it's okay.
+        if gql_client is not None:
+            self.client = gql_client
+        else:
+            self.client = root_client._gql()
+
+    def execute_gql(self, fname: str, vargs: dict = None) -> dict:
+        """Extracts a gql query from a file, and executes it on the given client with the supplied
+        input, if any. Also does some common error handling.
+
+        Args:
+            fname (str): The name of the gql file to load the query template from.
+            vargs (dict, optional): A dictionary with input arguments for the API call.
+        """
+        if vargs is None:
+            vargs = {}
+        query = gql_from_file(fname)
+        try:
+            return self.client.execute(query, variable_values=vargs)
+        except TransportQueryError as e:
+            for err in e.errors:
+                msg = err.get("message", "")
+                if msg.endswith("does not exist") or msg.endswith("not found"):
+                    raise EntityNotFoundError(msg) from e
+                if msg == "access denied":
+                    method_name = err.get("path", ["<UNKNWON_METHOD>"])[-1]
+                    raise AccessDeniedError(
+                        f"API Token is not permitted to call method {method_name}"
+                    ) from e
+            # If we didn't catch the error above, raise the initial error
+            raise

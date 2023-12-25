@@ -55,19 +55,19 @@ class Panther:
         self.token, self.domain = token, domain
         self.auto_convert = auto_convert
 
-        self.alerts = AlertsInterface(self._gql())
-        self.cloud_accounts = CloudAccountsInterface(self._gql())
-        self.databases = DatabaseInterface(self._gql())
-        self.queries = QueriesInterface(self._gql())
-        self.sources = SourcesInterface(self._gql())
-        self.users = UsersInterface(self._gql())
+        self.alerts = AlertsInterface(self)
+        self.cloud_accounts = CloudAccountsInterface(self)
+        self.databases = DatabaseInterface(self)
+        self.queries = QueriesInterface(self)
+        self.sources = SourcesInterface(self)
+        self.users = UsersInterface(self)
 
     def _gql(self) -> gql.Client:
-        """Lazily loads a GQL client and returns it. Used internally for makign GQL API calls to
+        """Lazily loads a GQL client and returns it. Used internally for making GQL API calls to
         Panther.
 
         Returns:
-            The Panther client objects own client for makign GQL API calls.
+            The Panther client objects own client for making GQL API calls.
         """
         # pylint: disable=attribute-defined-outside-init
         try:

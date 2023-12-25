@@ -4,19 +4,14 @@
 import time
 from typing import List
 
-import gql
-
 from panther_seim.exceptions import QueryCancelled, QueryError
-from ._util import execute_gql, UUID_REGEX, to_uuid
+from ._util import UUID_REGEX, to_uuid, GraphInterfaceBase
 
 
-class QueriesInterface:
+class QueriesInterface(GraphInterfaceBase):
     """An interface for working with queries in Panther. An instance of this class will be attached
     to the Panther client object.
     """
-
-    def __init__(self, client: gql.Client):
-        self.client = client
 
     def execute_async(self, sql: str) -> str:
         """Executes a SQL query asynchronously in the data lake. Results can be fetched at a later
@@ -37,7 +32,7 @@ class QueriesInterface:
 
         # -- API Call
         vargs = {"sql": sql}
-        results = execute_gql("queries/execute.gql", self.client, variable_values=vargs)
+        results = self.execute_gql("queries/execute.gql", vargs)
         return results["executeDataLakeQuery"]["id"]
 
     def results(self, query_id: str) -> tuple[str, str, List[dict]]:
@@ -65,7 +60,7 @@ class QueriesInterface:
 
         # -- API Call
         vargs = {"id": query_id}
-        resp = execute_gql("queries/results.gql", self.client, variable_values=vargs)
+        resp = self.execute_gql("queries/results.gql", vargs)
 
         # If the query hasn't returned results, return the status and message
         results = resp["dataLakeQuery"]
@@ -76,7 +71,7 @@ class QueriesInterface:
         rows = [edge["node"] for edge in results["results"]["edges"]]
         while results.get("pageInfo", {}).get("hasNextPage", False):
             vargs["cursor"] = results["pageInfo"]["endCursor"]
-            resp = execute_gql("queries/results.gql", self.client, variable_values=vargs)
+            resp = self.execute_gql("queries/results.gql", vargs)
             results = resp["dataLakeQuery"]
             rows.extend([edge["node"] for edge in results["results"]["edges"]])
         return results["status"], results["message"], rows

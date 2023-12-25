@@ -3,17 +3,13 @@
 from collections import defaultdict
 from datetime import datetime
 import typing
-import gql
-from ._util import validate_timestamp, gql_from_file, UUID_REGEX, EMAIL_REGEX, to_hex
+from ._util import validate_timestamp, UUID_REGEX, EMAIL_REGEX, to_hex, GraphInterfaceBase
 
 
-class AlertsInterface:
+class AlertsInterface(GraphInterfaceBase):
     """An interface for working with alerts in Panther. An instance of this class will be attached
     to the Panther client object.
     """
-
-    def __init__(self, client: gql.Client):
-        self.client = client
 
     def list(
         self, start: str | int | datetime, end: str | int | datetime = datetime.utcnow()
@@ -32,19 +28,13 @@ class AlertsInterface:
         start = validate_timestamp(start)
         end = validate_timestamp(end)
 
-        query = gql_from_file("alerts/list.gql")
-
         all_alerts = []
         has_more = True
         cursor = None
 
         while has_more:
-            results = self.client.execute(
-                query,
-                variable_values={
-                    "input": {"createdAtBefore": end, "createdAtAfter": start, "cursor": cursor}
-                },
-            )
+            vargs = {"input": {"createdAtBefore": end, "createdAtAfter": start, "cursor": cursor}}
+            results = self.execute_gql("alerts/list.gql", vargs)
             all_alerts.extend([edge["node"] for edge in results["alerts"]["edges"]])
             has_more = results["alerts"].get("pageInfo", {}).get("hasNextPage")
             cursor = results["alerts"].get("pageInfo", {}).get("endCursor")
@@ -71,8 +61,7 @@ class AlertsInterface:
         alertid = to_hex(alertid)
 
         # Get Alert
-        query = gql_from_file("alerts/get.gql")
-        result = self.client.execute(query, variable_values={"id": alertid})
+        result = self.execute_gql("alerts/get.gql", {"id": alertid})
         return result.get("alert")
 
     def add_comment(self, alertid: str, body: str, fmt: str = "PLAIN_TEXT") -> dict:
@@ -105,9 +94,9 @@ class AlertsInterface:
         alertid = to_hex(alertid)
 
         # Invoke API
-        query = gql_from_file("alerts/add_comment.gql")
-        result = self.client.execute(
-            query, variable_values={"input": {"alertId": alertid, "body": body, "format": format}}
+        result = self.execute_gql(
+            "alerts/add_comment.gql",
+            {"input": {"alertId": alertid, "body": body, "format": format}},
         )
         return result.get("createAlertComment")
 
@@ -161,23 +150,22 @@ class AlertsInterface:
         if assignee:
             # Could be an email, could be an ID
             if EMAIL_REGEX.fullmatch(assignee):
-                query = gql_from_file("alerts/update_assignee_by_email.gql")
-                results = self.client.execute(
-                    query, variable_values={"input": {"ids": alertids, "assigneeEmail": assignee}}
+                results = self.execute_gql(
+                    "alerts/update_assignee_by_email.gql",
+                    {"input": {"ids": alertids, "assigneeEmail": assignee}},
                 )
                 for result in results["updateAlertsAssigneeByEmail"]["alerts"]:
                     alerts[result["id"]].update(result)
             else:
-                query = gql_from_file("alerts/update_assignee_by_id.gql")
-                results = self.client.execute(
-                    query, variable_values={"input": {"ids": alertids, "assigneeId": assignee}}
+                results = self.execute_gql(
+                    "alerts/update_assignee_by_id.gql",
+                    {"input": {"ids": alertids, "assigneeId": assignee}},
                 )
                 for result in results["updateAlertsAssigneeById"]["alerts"]:
                     alerts[result["id"]].update(result)
         if status:
-            query = gql_from_file("alerts/update_status.gql")
-            results = self.client.execute(
-                query, variable_values={"input": {"ids": alertids, "status": status}}
+            results = self.execute_gql(
+                "alerts/update_status.gql", {"input": {"ids": alertids, "status": status}}
             )
             for result in results["updateAlertStatusById"]["alerts"]:
                 print(result)

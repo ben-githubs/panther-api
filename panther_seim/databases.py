@@ -3,17 +3,13 @@
 
 from typing import List
 
-import gql
-from ._util import SNOWFLAKE_IDENTIFIER_UNQUOTED_REGEX, execute_gql
+from ._util import SNOWFLAKE_IDENTIFIER_UNQUOTED_REGEX, GraphInterfaceBase
 
 
-class DatabaseInterface:
+class DatabaseInterface(GraphInterfaceBase):
     """An interface for working with databases in Panther. An instance of this class will be
     attached to the Panther client object.
     """
-
-    def __init__(self, client: gql.Client):
-        self.client = client
 
     def list(self) -> List[dict]:
         """Lists all available databases, and details their tables and columns..
@@ -23,7 +19,7 @@ class DatabaseInterface:
         """
 
         # -- Invoke API
-        result = execute_gql("databases/list.gql", self.client)
+        result = self.execute_gql("databases/list.gql")
         return result["dataLakeDatabases"]
 
     def get(self, database: str) -> dict:
@@ -50,5 +46,5 @@ class DatabaseInterface:
         # -- Invoke API
         queryfile = "databases/get.gql"
         vargs = {"database": database}  # Variable Values
-        result = execute_gql(queryfile, self.client, variable_values=vargs)
+        result = self.execute_gql(queryfile, vargs)
         return result["dataLakeDatabase"]
