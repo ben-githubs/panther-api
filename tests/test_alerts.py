@@ -7,7 +7,7 @@ import panther_seim.alerts
     "definitely-not-a-uuid"
 ])
 def test_get_alert_invalid_input(alertid):
-    alerts = panther_seim.alerts.AlertsInterface(None)
+    alerts = panther_seim.alerts.AlertsInterface(None, None)
     with pytest.raises(ValueError):
         alerts.get(alertid)
 
@@ -19,6 +19,6 @@ def test_get_alert_invalid_input(alertid):
     ("c73bcdcc26694bf681d3e4ae73fb11fd", "", "NOT_A VALID_FORMAT"),
 ])
 def test_get_alert_invalid_input(alertid, body, fmt):
-    alerts = panther_seim.alerts.AlertsInterface(None)
+    alerts = panther_seim.alerts.AlertsInterface(None, None)
     with pytest.raises(ValueError):
         alerts.add_comment(alertid, body, fmt)

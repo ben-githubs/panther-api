@@ -55,7 +55,7 @@ class Panther:
         self.token, self.domain = token, domain
         self.auto_convert = auto_convert
 
-        self.alerts = AlertsInterface(self._gql())
+        self.alerts = AlertsInterface(self, self._gql())
         self.cloud_accounts = CloudAccountsInterface(self._gql())
         self.databases = DatabaseInterface(self._gql())
         self.queries = QueriesInterface(self, self._gql())
