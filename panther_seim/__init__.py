@@ -60,7 +60,7 @@ class Panther:
         self.databases = DatabaseInterface(self)
         self.queries = QueriesInterface(self)
         self.sources = SourcesInterface(self)
-        self.users = UsersInterface(self._gql())
+        self.users = UsersInterface(self)
 
     def _gql(self) -> gql.Client:
         """Lazily loads a GQL client and returns it. Used internally for making GQL API calls to

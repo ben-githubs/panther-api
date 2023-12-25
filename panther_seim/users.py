@@ -1,17 +1,13 @@
 """ Code for interacting with users is specified here.
 """
 
-import gql
-from ._util import EMAIL_REGEX, execute_gql
+from ._util import EMAIL_REGEX, GraphInterfaceBase
 
 
-class UsersInterface:
+class UsersInterface(GraphInterfaceBase):
     """An interface for working with users in Panther. An instance of this class will be attached
     to the Panther client object.
     """
-
-    def __init__(self, client: gql.Client):
-        self.client = client
 
     def list(self) -> list[dict]:
         """List all users in the Panther instance.
@@ -20,7 +16,7 @@ class UsersInterface:
             A list of user descriptions.
         """
         # Get Users
-        result = execute_gql("users/list.gql", self.client)
+        result = self.execute_gql("users/list.gql")
         return result.get("users")
 
     def get(self, userid: str) -> dict:
@@ -42,12 +38,12 @@ class UsersInterface:
         # Invoke API
         if EMAIL_REGEX.fullmatch(userid):
             # This is an email
-            result = execute_gql(
-                "users/get_by_email.gql", self.client, variable_values={"email": userid}
+            result = self.execute_gql(
+                "users/get_by_email.gql", {"email": userid}
             )
             return result.get("userByEmail")
         # This is an ID
-        result = execute_gql("users/get_by_id.gql", self.client, variable_values={"id": userid})
+        result = self.execute_gql("users/get_by_id.gql", {"id": userid})
         return result.get("userById")
 
     # pylint: disable=too-many-arguments, too-many-branches
@@ -108,5 +104,5 @@ class UsersInterface:
         if role_name:
             variable_input["input"]["role"] = {"kind": "NAME", "value": role_name}
 
-        results = execute_gql("users/update.gql", self.client, variable_values=variable_input)
+        results = self.execute_gql("users/update.gql", variable_input)
         return results.get("updateUser")

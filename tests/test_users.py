@@ -39,7 +39,7 @@ class TestGet:
                 "createdAt": "2023-08-01T22:09:32Z"
             }
     
-    client = UsersInterface(FakeClient())
+    client = UsersInterface(None, FakeClient())
 
     @pytest.mark.parametrize("val", [
         10, # int
@@ -97,7 +97,7 @@ class TestUpdate:
                 "createdAt": "2023-08-01T22:09:32Z"
             }
     
-    client = UsersInterface(FakeClient())
+    client = UsersInterface(None, FakeClient())
 
     @pytest.mark.parametrize(("userid", "kwargs"), [
         (123, {}),
