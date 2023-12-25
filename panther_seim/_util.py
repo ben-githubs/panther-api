@@ -194,3 +194,40 @@ def gql_from_file(path: str | Path):
 
     # Create a new GQL query from the file contents, and return it
     return gql(contents)
+
+
+class GraphInterfaceBase:
+    """A base class for any interfaces which use a GraphQL backend."""
+
+    # pylint: disable=too-few-public-methods
+    #   Since this is a baseclass, and the subclassess will have more methods defined, this warning
+    #   isn't helpful.
+    def __init__(self, root_client, gql_client: Client):
+        self.root = root_client
+        self.client = gql_client
+
+    def execute(self, fname: str, vargs: dict = None) -> dict:
+        """Extracts a gql query from a file, and executes it on the given client with the supplied
+        input, if any. Also does some common error handling.
+
+        Args:
+            fname (str): The name of the gql file to load the query template from.
+            vargs (dict, optional): A dictionary with input arguments for the API call.
+        """
+        if vargs is None:
+            vargs = {}
+        query = gql_from_file(fname)
+        try:
+            return self.client.execute(query, variable_values=vargs)
+        except TransportQueryError as e:
+            for err in e.errors:
+                msg = err.get("message", "")
+                if msg.endswith("does not exist") or msg.endswith("not found"):
+                    raise EntityNotFoundError(msg) from e
+                if msg == "access denied":
+                    method_name = err.get("path", ["<UNKNWON_METHOD>"])[-1]
+                    raise AccessDeniedError(
+                        f"API Token is not permitted to call method {method_name}"
+                    ) from e
+            # If we didn't catch the error above, raise the initial error
+            raise

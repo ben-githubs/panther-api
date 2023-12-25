@@ -4,16 +4,14 @@
 import re
 from typing import List
 
-import gql
-
 from ._util import (
-    execute_gql,
     UUID_REGEX,
     to_uuid,
     S3_BUCKET_NAME_REGEX,
     KMS_ARN_REGEX,
     IAM_ARN_REGEX,
     AWS_REGIONS,
+    GraphInterfaceBase,
 )
 
 ALLOWED_STREAM_TYPES = {
@@ -26,14 +24,14 @@ ALLOWED_STREAM_TYPES = {
 LOG_SOURCE_LABEL = re.compile(r"[\ a-zA-Z\d-]+")
 
 
-class SourcesInterface:
+class SourcesInterface(GraphInterfaceBase):
     """An interface for working with queries in Panther. An instance of this class will be attached
     to the Panther client object.
     """
 
-    def __init__(self, client: gql.Client):
-        self.client = client
-        self.s3 = S3Interface(client, self)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.s3 = S3Interface(*args, **kwargs)
 
     def list(self) -> List[dict]:
         """Lists all log sources configured in Panther.
@@ -43,7 +41,7 @@ class SourcesInterface:
         """
         # -- Invoke API
         vargs = {"cursor": ""}
-        results = execute_gql("sources/list.gql", self.client, variable_values=vargs)
+        results = self.execute("sources/list.gql", vargs)
         # This API call is weird - it is structured as if there is pagination, but there isn't.
         return [edge["node"] for edge in results["sources"]["edges"]]
 
@@ -68,7 +66,7 @@ class SourcesInterface:
 
         # -- Invoke API
         vargs = {"id": source_id}
-        results = execute_gql("sources/get.gql", self.client, variable_values=vargs)
+        results = self.execute("sources/get.gql", vargs)
 
         return results["source"]
 
@@ -90,16 +88,13 @@ class SourcesInterface:
 
         # -- Invoke API
         vargs = {"id": source_id}
-        execute_gql("sources/delete.gql", self.client, variable_values=vargs)
+        self.execute("sources/delete.gql", vargs)
 
 
-class S3Interface:  # pylint: disable=too-many-arguments, too-many-branches, too-many-locals, too-many-statements
+class S3Interface(GraphInterfaceBase):
     """An interface for creating and updating S3 log sources."""
 
-    def __init__(self, client: gql.Client, source: SourcesInterface):
-        self.client = client
-        self.source = source
-
+    # pylint: disable=too-many-arguments, too-many-branches, too-many-locals, too-many-statements
     def create(
         self,
         label: str,
@@ -249,7 +244,7 @@ class S3Interface:  # pylint: disable=too-many-arguments, too-many-branches, too
                 }
             )
 
-        result = execute_gql("sources/s3/create.gql", self.client, variable_values={"input": vargs})
+        result = self.execute("sources/s3/create.gql", {"input": vargs})
         return result["createS3Source"]["logSource"]["integrationId"]
 
     def update(
@@ -389,8 +384,9 @@ class S3Interface:  # pylint: disable=too-many-arguments, too-many-branches, too
                 raise ValueError(f"Invalid region for 'kms_key': {region}")
 
         # -- Invoke API
-        # Override the previous config attributes, if we specified new values for them in the 
+        # Override the previous config attributes, if we specified new values for them in the
         #   function params.
+        vargs = {"id": source_id}
         if kms_key:
             vargs["kmsKey"] = kms_key
         if label:
@@ -413,7 +409,5 @@ class S3Interface:  # pylint: disable=too-many-arguments, too-many-branches, too
                 )
 
         # Make API call and return the new config.
-        results = execute_gql(
-            "sources/s3/update.gql", self.client, variable_values={"input": vargs}
-        )
+        results = self.execute("sources/s3/update.gql", {"input": vargs})
         return results["updateS3Source"]["logSource"]
