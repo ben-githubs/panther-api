@@ -60,7 +60,7 @@ class TestResult:
                 }
             }
         
-    client = QueriesInterface(FakeClient())
+    client = QueriesInterface(None, FakeClient())
 
     @pytest.mark.parametrize("queryid", [
         10, # int
