@@ -15,6 +15,7 @@ from gql.transport.aiohttp import AIOHTTPTransport
 from .alerts import AlertsInterface
 from .cloud_accounts import CloudAccountsInterface
 from .databases import DatabaseInterface
+from .metrics import MetricsInterface
 from .queries import QueriesInterface
 from .sources import SourcesInterface
 from .users import UsersInterface
@@ -58,6 +59,7 @@ class Panther:
         self.alerts = AlertsInterface(self)
         self.cloud_accounts = CloudAccountsInterface(self)
         self.databases = DatabaseInterface(self)
+        self.metrics = MetricsInterface(self)
         self.queries = QueriesInterface(self)
         self.sources = SourcesInterface(self)
         self.users = UsersInterface(self)
