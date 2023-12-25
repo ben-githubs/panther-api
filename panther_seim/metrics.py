@@ -74,3 +74,49 @@ class MetricsInterface(GraphInterfaceBase):
         for datum in results["metrics"]["alertsPerRule"]:
             data[datum["entityId"]] = {"count": datum["value"], "rule_description": datum["label"]}
         return data
+
+    def alerts_per_severity(
+        self, start: str | int | datetime, end: str | int | datetime, interval: int = 180
+    ) -> dict:
+        """Retreives all available metrics for the time period.
+
+        Args:
+            start (str, datetime): The start of the period to fetch metrics for.
+                When a string, it must be in ISO format. When an integer, it represents a Unix
+                timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
+                UTC is intended.
+            end (str, datetime): The end of the period to fetch metrics for.
+                When a string, it must be in ISO format. When an integer, it represents a Unix
+                timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
+                UTC is intended.
+            interval (int, optional): The interval between metrics checks. Used in breakdowns.
+
+        Returns:
+            A dictionary with metrics on alerts. The dictionary keys correspond to each severity,
+            the values are a list fo timestamps, and the counts of alerts of each severity, binned
+            according to the timestamp list.
+        """
+        # -- Validate input
+        start = validate_timestamp(start)
+        end = validate_timestamp(end)
+
+        if not isinstance(interval, int):
+            raise TypeError(f"'interval' must be an integer; got {type(interval).__name__}.")
+        if interval <= 0:
+            raise ValueError("'interval' must be greater than zero.")
+
+        # -- Invoke API
+        vargs = {"input": {"fromDate": start, "toDate": end, "intervalInMinutes": interval}}
+        results_raw = self.execute_gql("metrics/alerts_by_severity.gql", vargs)
+        results = results_raw["metrics"]["alertsPerSeverity"]
+
+        data = {}
+        # Extract Time Series
+        data["timestamps"] = []
+        for timestamp in results[0]["breakdown"].keys():
+            data["timestamps"].append(datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ"))
+        # Extract Severity counts
+        for item in results:
+            data[item["label"]] = list(item["breakdown"].values())
+
+        return data
