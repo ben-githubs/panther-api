@@ -7,16 +7,13 @@ import gql
 from gql.transport.exceptions import TransportQueryError
 from .exceptions import EntityAlreadyExistsError
 
-from ._util import UUID_REGEX, to_uuid, execute_gql, AWS_REGIONS, IAM_ARN_REGEX
+from ._util import UUID_REGEX, to_uuid, GraphInterfaceBase, AWS_REGIONS, IAM_ARN_REGEX
 
 
-class CloudAccountsInterface:
+class CloudAccountsInterface(GraphInterfaceBase):
     """An interface for working with users in Panther. An instance of this class will be attached
     to the Panther client object.
     """
-
-    def __init__(self, client: gql.Client):
-        self.client = client
 
     def list(self) -> list[dict]:
         """Lists all cloud account integrations that are configured in Panther.
@@ -30,8 +27,8 @@ class CloudAccountsInterface:
         cursor = None
 
         while has_more:
-            results = execute_gql(
-                "cloud_accounts/list.gql", self.client, variable_values={"cursor": cursor}
+            results = self.execute_gql(
+                "cloud_accounts/list.gql", {"cursor": cursor}
             )
             accounts.extend([edge["node"] for edge in results["cloudAccounts"]["edges"]])
             has_more = results["cloudAccounts"].get("pageInfo", {}).get("hasNextPage")
@@ -58,8 +55,8 @@ class CloudAccountsInterface:
         accountid = to_uuid(accountid)
 
         # Get Account
-        result = execute_gql(
-            "cloud_accounts/get.gql", self.client, variable_values={"id": accountid}
+        result = self.execute_gql(
+            "cloud_accounts/get.gql", {"id": accountid}
         )
         return result.get("cloudAccount")
 
@@ -159,8 +156,8 @@ class CloudAccountsInterface:
         if resource_type_ignore:
             values["resourceTypeIgnoreList"] = resource_type_ignore
         try:
-            result = execute_gql(
-                "cloud_accounts/create.gql", self.client, variable_values={"input": values}
+            result = self.execute_gql(
+                "cloud_accounts/create.gql", {"input": values}
             )
             print(result)
             return result["createCloudAccount"]["cloudAccount"]["id"]
@@ -190,8 +187,8 @@ class CloudAccountsInterface:
         accountid = to_uuid(accountid)
 
         # Invoke API
-        results = execute_gql(
-            "cloud_accounts/delete.gql", self.client, variable_values={"id": accountid}
+        results = self.execute_gql(
+            "cloud_accounts/delete.gql", {"id": accountid}
         )
         print(results)
         return results["deleteCloudAccount"]["id"]
@@ -280,7 +277,7 @@ class CloudAccountsInterface:
         if resource_type_ignore:
             values["resourceTypeIgnoreList"] = resource_type_ignore
 
-        result = execute_gql(
-            "cloud_accounts/update.gql", self.client, variable_values={"input": values}
+        result = self.execute_gql(
+            "cloud_accounts/update.gql", {"input": values}
         )
         return result["updateCloudAccount"]["cloudAccount"]

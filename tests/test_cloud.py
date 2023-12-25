@@ -31,7 +31,7 @@ class TestGet:
                 "resourceTypeIgnoreList": []
             }
 
-    accounts = panther_seim.cloud_accounts.CloudAccountsInterface(FakeClient())
+    accounts = panther_seim.cloud_accounts.CloudAccountsInterface(None, FakeClient())
 
     @pytest.mark.parametrize("accountid", [
         123,
@@ -92,7 +92,7 @@ class TestCreate:
                 }
             }
     
-    accounts = panther_seim.cloud_accounts.CloudAccountsInterface(FakeClient())
+    accounts = panther_seim.cloud_accounts.CloudAccountsInterface(None, FakeClient())
     
     @pytest.mark.parametrize(("account_id", "audit_role", "label", "kwargs"), [
         (111111111111, "arn:aws:iam::111122223333:role/PantherAuditRole-us-west-2", "Test Account", {}),
