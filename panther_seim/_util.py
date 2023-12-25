@@ -202,9 +202,22 @@ class GraphInterfaceBase:
     # pylint: disable=too-few-public-methods
     #   Since this is a baseclass, and the subclassess will have more methods defined, this warning
     #   isn't helpful.
-    def __init__(self, root_client, gql_client: Client):
+    def __init__(self, root_client, gql_client: Client = None):
+        """ Initializes the Interface class.
+
+        Args:
+            root_client (Panther): the root Panther client.
+            gql_client (gql.Client): the GQL client to use for queries. If not specified, defaults
+                to the root_client's GQL client.
+        """
         self.root = root_client
-        self.client = gql_client
+        # It's useful to be able to specify a different client for testing purposes. Normally, I
+        #   wouldn't include an testing-only parameter as an init parameter, but since this class
+        #   should never be instantiated by an end user, it's okay.
+        if gql_client is not None:
+            self.client = gql_client
+        else:
+            self.client = root_client._gql()
 
     def execute_gql(self, fname: str, vargs: dict = None) -> dict:
         """Extracts a gql query from a file, and executes it on the given client with the supplied

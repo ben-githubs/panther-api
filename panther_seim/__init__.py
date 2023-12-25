@@ -55,11 +55,11 @@ class Panther:
         self.token, self.domain = token, domain
         self.auto_convert = auto_convert
 
-        self.alerts = AlertsInterface(self, self._gql())
-        self.cloud_accounts = CloudAccountsInterface(self, self._gql())
-        self.databases = DatabaseInterface(self, self._gql())
-        self.queries = QueriesInterface(self, self._gql())
-        self.sources = SourcesInterface(self, self._gql())
+        self.alerts = AlertsInterface(self)
+        self.cloud_accounts = CloudAccountsInterface(self)
+        self.databases = DatabaseInterface(self)
+        self.queries = QueriesInterface(self)
+        self.sources = SourcesInterface(self)
         self.users = UsersInterface(self._gql())
 
     def _gql(self) -> gql.Client:
