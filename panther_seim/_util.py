@@ -222,8 +222,9 @@ class GraphInterfaceBase:
             # If we didn't catch the error above, raise the initial error
             raise
 
+
 def convert_series_with_breakdown(series: list) -> dict:
-    """ Converts a SeriesWithBreakdown result into a version more compatible with plotting
+    """Converts a SeriesWithBreakdown result into a version more compatible with plotting
     tools like Matplotlib. We extract the timestamps from the breakdown and make them a
     separate field, and then make an array of count values for each labelled item in the
     series. The intention is to make it easy to do things like plot info alerts over time:
@@ -244,5 +245,5 @@ def convert_series_with_breakdown(series: list) -> dict:
     # Extract Severity counts
     for item in series:
         data[item["label"]] = list(item["breakdown"].values())
-    
+
     return data
