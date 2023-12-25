@@ -3,7 +3,7 @@
 
 from datetime import datetime
 
-from ._util import GraphInterfaceBase, validate_timestamp
+from ._util import GraphInterfaceBase, validate_timestamp, convert_series_with_breakdown
 
 
 class MetricsInterface(GraphInterfaceBase):
@@ -110,13 +110,4 @@ class MetricsInterface(GraphInterfaceBase):
         results_raw = self.execute_gql("metrics/alerts_by_severity.gql", vargs)
         results = results_raw["metrics"]["alertsPerSeverity"]
 
-        data = {}
-        # Extract Time Series
-        data["timestamps"] = []
-        for timestamp in results[0]["breakdown"].keys():
-            data["timestamps"].append(datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ"))
-        # Extract Severity counts
-        for item in results:
-            data[item["label"]] = list(item["breakdown"].values())
-
-        return data
+        return convert_series_with_breakdown(results)

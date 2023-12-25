@@ -221,3 +221,28 @@ class GraphInterfaceBase:
                     ) from e
             # If we didn't catch the error above, raise the initial error
             raise
+
+def convert_series_with_breakdown(series: list) -> dict:
+    """ Converts a SeriesWithBreakdown result into a version more compatible with plotting
+    tools like Matplotlib. We extract the timestamps from the breakdown and make them a
+    separate field, and then make an array of count values for each labelled item in the
+    series. The intention is to make it easy to do things like plot info alerts over time:
+        plot(results["timestamps"], results["INFO"])
+    """
+    # -- Validate Input
+    # This is an internal-only function, so we'll skip the basic type checks and whatnot.
+    #   The main worry I have is that the timestamp breakdowns will be different for each
+    #   entry in the series... let's make sure they're the same.
+    marker = "_".join(series[0]["breakdown"].keys())
+    for item in series:
+        assert "_".join(item["breakdown"].keys()) == marker
+
+    data = {}
+    data["timestamps"] = []
+    for timestamp in marker.split("_"):
+        data["timestamps"].append(datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ"))
+    # Extract Severity counts
+    for item in series:
+        data[item["label"]] = list(item["breakdown"].values())
+    
+    return data
