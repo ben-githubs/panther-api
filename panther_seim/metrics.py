@@ -78,7 +78,7 @@ class MetricsInterface(GraphInterfaceBase):
     def alerts_per_severity(
         self, start: str | int | datetime, end: str | int | datetime, interval: int = 180
     ) -> dict:
-        """Retreives all available metrics for the time period.
+        """Retreives metrics of alert counts, segmented by severity, over the time period.
 
         Args:
             start (str, datetime): The start of the period to fetch metrics for.
@@ -111,3 +111,92 @@ class MetricsInterface(GraphInterfaceBase):
         results = results_raw["metrics"]["alertsPerSeverity"]
 
         return convert_series_with_breakdown(results)
+    
+    # Note: the Panther-API name for this metric is 'BytesProcessedPerSource'. However, that name
+    #   is misleading, and sounds like it returns the bytes processed by a specific log source.
+    #   To avoid confusion, we label this metric as 'bytes_processed_per_logtype', which is what it
+    #   actually represents.
+    def bytes_processed_per_logtype(
+        self, start: str | int | datetime, end: str | int | datetime, interval: int = 180
+    ) -> dict:
+        """Retreives metrics of alert counts, segmented by severity, over the time period.
+
+        Args:
+            start (str, datetime): The start of the period to fetch metrics for.
+                When a string, it must be in ISO format. When an integer, it represents a Unix
+                timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
+                UTC is intended.
+            end (str, datetime): The end of the period to fetch metrics for.
+                When a string, it must be in ISO format. When an integer, it represents a Unix
+                timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
+                UTC is intended.
+            interval (int, optional): The interval between metrics checks. Used in breakdowns.
+
+        Returns:
+            A dictionary with metrics on log processing. The dictionary has the following structure:
+                timestasmps (list[datetime]): A list of datetimes, which represent the beginning of
+                    each interval.
+                $log_type (list[int]): A list of the number of bytes processed for $log_type. Each
+                    item in the list is the volume processed in the corresponding interval in the
+                    'timestamps' list.
+        """
+        # -- Validate Input
+        start = validate_timestamp(start)
+        end = validate_timestamp(end)
+
+        if not isinstance(interval, int):
+            raise TypeError(f"'interval' must be an integer; got {type(interval).__name__}.")
+        if interval <= 0:
+            raise ValueError("'interval' must be greater than zero.")
+
+        # -- Invoke API
+        vargs = {"input": {"fromDate": start, "toDate": end, "intervalInMinutes": interval}}
+        results_raw = self.execute_gql("metrics/bytes_processed_log_type.gql", vargs)
+        results = results_raw["metrics"]["bytesProcessedPerSource"]
+
+        return convert_series_with_breakdown(results)
+    
+    # Note: the Panther-API name for this metric is 'BytesQueriedPerSource'. However, that name is
+    #   misleading, and sounds like it returns the bytes queried from a specific log source. To
+    #   avoid confusion, we label this metric as 'bytes_queried_per_logtype', which is what it
+    #   actually represents.
+    def bytes_queried_per_logtype(
+        self, start: str | int | datetime, end: str | int | datetime, interval: int = 180
+    ) -> dict:
+        """Retreives a breakdown of the volume of logs queried over the timespan, segmented by log type.
+
+        Args:
+            start (str, datetime): The start of the period to fetch metrics for.
+                When a string, it must be in ISO format. When an integer, it represents a Unix
+                timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
+                UTC is intended.
+            end (str, datetime): The end of the period to fetch metrics for.
+                When a string, it must be in ISO format. When an integer, it represents a Unix
+                timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
+                UTC is intended.
+            interval (int, optional): The interval between metrics checks. Used in breakdowns.
+
+        Returns:
+            A dictionary with metrics on log queries. The dictionary has the following structure:
+                timestasmps (list[datetime]): A list of datetimes, which represent the beginning of
+                    each interval.
+                $log_type (list[int]): A list of the number of bytes queried for $log_type. Each
+                    item in the list is the volume of data queried in the corresponding interval in
+                    the 'timestamps' list.
+        """
+        # -- Validate Input
+        start = validate_timestamp(start)
+        end = validate_timestamp(end)
+
+        if not isinstance(interval, int):
+            raise TypeError(f"'interval' must be an integer; got {type(interval).__name__}.")
+        if interval <= 0:
+            raise ValueError("'interval' must be greater than zero.")
+
+        # -- Invoke API
+        vargs = {"input": {"fromDate": start, "toDate": end, "intervalInMinutes": interval}}
+        results_raw = self.execute_gql("metrics/bytes_queried_log_type.gql", vargs)
+        results = results_raw["metrics"]["bytesQueriedPerSource"]
+
+        return convert_series_with_breakdown(results)
+
