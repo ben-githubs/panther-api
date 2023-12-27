@@ -184,6 +184,35 @@ class MetricsInterface(GraphInterfaceBase):
         results = results_raw["metrics"]["bytesProcessedPerSource"]
 
         return convert_series_with_breakdown(results)
+
+    def bytes_queried(
+        self,
+        start: str | int | datetime,
+        end: str | int | datetime,
+    ) -> int:
+        """Retreives the volume of logs queried over the time frame.
+
+        Args:
+            start (str, datetime): The start of the period to fetch metrics for.
+                When a string, it must be in ISO format. When an integer, it represents a Unix
+                timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
+                UTC is intended.
+            end (str, datetime): The end of the period to fetch metrics for.
+                When a string, it must be in ISO format. When an integer, it represents a Unix
+                timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
+                UTC is intended.
+
+        Returns:
+            The number of bytes queried.
+        """
+        # -- Validate input
+        start = validate_timestamp(start)
+        end = validate_timestamp(end)
+
+        # -- Invoke API
+        vargs = {"input": {"fromDate": start, "toDate": end}}
+        results = self.execute_gql("metrics/bytes_queried.gql", vargs)
+        return int(results["metrics"]["totalBytesQueried"])
     
     # Note: the Panther-API name for this metric is 'BytesQueriedPerSource'. However, that name is
     #   misleading, and sounds like it returns the bytes queried from a specific log source. To
