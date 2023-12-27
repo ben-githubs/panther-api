@@ -258,3 +258,42 @@ class MetricsInterface(GraphInterfaceBase):
 
         return convert_series_with_breakdown(results)
 
+    def events_processed_per_logtype(
+        self, start: str | int | datetime, end: str | int | datetime, interval: int = 180
+    ) -> dict[str, list]:
+        """Retreives a breakdown of the number of log events ingested, segmented by log type.
+
+        Args:
+            start (str, datetime): The start of the period to fetch metrics for.
+                When a string, it must be in ISO format. When an integer, it represents a Unix
+                timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
+                UTC is intended.
+            end (str, datetime): The end of the period to fetch metrics for.
+                When a string, it must be in ISO format. When an integer, it represents a Unix
+                timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
+                UTC is intended.
+            interval (int, optional): The interval between metrics checks. Used in breakdowns.
+
+        Returns:
+            A dictionary with metrics on event ingestion. The dict has the following structure:
+                timestasmps (list[datetime]): A list of datetimes, which represent the beginning of
+                    each interval.
+                $log_type (list[int]): A list of the number of events ingested for $log_type. Each
+                    item in the list is the volume of data ingested in the corresponding interval in
+                    the 'timestamps' list.
+        """
+        # -- Validate Input
+        start = validate_timestamp(start)
+        end = validate_timestamp(end)
+
+        if not isinstance(interval, int):
+            raise TypeError(f"'interval' must be an integer; got {type(interval).__name__}.")
+        if interval <= 0:
+            raise ValueError("'interval' must be greater than zero.")
+
+        # -- Invoke API
+        vargs = {"input": {"fromDate": start, "toDate": end, "intervalInMinutes": interval}}
+        results_raw = self.execute_gql("metrics/events_processed_log_type.gql", vargs)
+        results = results_raw["metrics"]["eventsProcessedPerLogType"]
+
+        return convert_series_with_breakdown(results)
