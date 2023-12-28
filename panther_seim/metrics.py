@@ -14,7 +14,7 @@ class MetricsInterface(GraphInterfaceBase):
     def all(
         self, start: str | int | datetime, end: str | int | datetime, interval: int = 180
     ) -> dict:
-        """Retreives all available metrics for the time period.
+        """All available metrics for the time period.
 
         Args:
             start (str, datetime): The start of the period to fetch metrics for.
@@ -48,7 +48,7 @@ class MetricsInterface(GraphInterfaceBase):
         start: str | int | datetime,
         end: str | int | datetime,
     ) -> dict:
-        """Retreives a count of alerts, grouped by triggering rule, for the time period.
+        """Number of alerts generated over the time period, segmented by source detection.
 
         Args:
             start (str, datetime): The start of the period to fetch metrics for.
@@ -78,7 +78,7 @@ class MetricsInterface(GraphInterfaceBase):
     def alerts_per_severity(
         self, start: str | int | datetime, end: str | int | datetime, interval: int = 180
     ) -> dict:
-        """Retreives metrics of alert counts, segmented by severity, over the time period.
+        """Number of alerts generated over the time period, segmented by severity.
 
         Args:
             start (str, datetime): The start of the period to fetch metrics for.
@@ -117,7 +117,7 @@ class MetricsInterface(GraphInterfaceBase):
         start: str | int | datetime,
         end: str | int | datetime,
     ) -> int:
-        """Retreives the total number of alerts generated within the time period.
+        """Total number of alerts generated within the time period.
 
         Args:
             start (str, datetime): The start of the period to fetch metrics for.
@@ -146,7 +146,7 @@ class MetricsInterface(GraphInterfaceBase):
         start: str | int | datetime,
         end: str | int | datetime,
     ) -> int:
-        """Retreives the volume of logs ingested over the time frame.
+        """Volume of logs ingested over the time frame.
 
         Args:
             start (str, datetime): The start of the period to fetch metrics for.
@@ -177,7 +177,7 @@ class MetricsInterface(GraphInterfaceBase):
     def bytes_processed_per_logtype(
         self, start: str | int | datetime, end: str | int | datetime, interval: int = 180
     ) -> dict:
-        """Retreives metrics of alert counts, segmented by severity, over the time period.
+        """Volume of logs ingested over the time frame, segmented by log type.
 
         Args:
             start (str, datetime): The start of the period to fetch metrics for.
@@ -219,7 +219,7 @@ class MetricsInterface(GraphInterfaceBase):
         start: str | int | datetime,
         end: str | int | datetime,
     ) -> int:
-        """Retreives the volume of logs queried over the time frame.
+        """Volume of logs queried over the time frame.
 
         Args:
             start (str, datetime): The start of the period to fetch metrics for.
@@ -250,7 +250,7 @@ class MetricsInterface(GraphInterfaceBase):
     def bytes_queried_per_logtype(
         self, start: str | int | datetime, end: str | int | datetime, interval: int = 180
     ) -> dict:
-        """Retreives a breakdown of the volume of logs queried over the timespan, segmented by log type.
+        """Breakdown of the volume of logs queried over the timespan, segmented by log type.
 
         Args:
             start (str, datetime): The start of the period to fetch metrics for.
@@ -290,7 +290,7 @@ class MetricsInterface(GraphInterfaceBase):
     def events_processed_per_logtype(
         self, start: str | int | datetime, end: str | int | datetime, interval: int = 180
     ) -> dict[str, list]:
-        """Retreives a breakdown of the number of log events ingested, segmented by log type.
+        """Breakdown of the number of log events ingested, segmented by log type.
 
         Args:
             start (str, datetime): The start of the period to fetch metrics for.
@@ -332,7 +332,7 @@ class MetricsInterface(GraphInterfaceBase):
         start: str | int | datetime,
         end: str | int | datetime,
     ) -> dict:
-        """Calculates the average latency per log type, over the time period.
+        """Average log latency over the time period, segmented by log type.
 
         Args:
             start (str, datetime): The start of the period to fetch metrics for.
