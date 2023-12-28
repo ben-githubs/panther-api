@@ -1,0 +1,5 @@
+query all ($input: MetricsInput!) {
+  metrics(input: $input) {
+    totalBytesProcessed
+  }
+}

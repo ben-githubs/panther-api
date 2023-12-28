@@ -1,0 +1,9 @@
+query all ($input: MetricsInput!) {
+  metrics(input: $input) {
+    alertsPerSeverity {
+      label
+      value
+      breakdown
+    }
+  }
+}

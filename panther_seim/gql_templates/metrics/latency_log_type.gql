@@ -1,0 +1,8 @@
+query func ($input: MetricsInput!) {
+  metrics(input: $input) {
+    latencyPerLogType {
+      label
+      value
+    }
+  }
+}

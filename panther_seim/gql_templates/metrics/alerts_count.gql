@@ -1,0 +1,5 @@
+query func ($input: MetricsInput!) {
+  metrics(input: $input) {
+    totalAlerts
+  }
+}

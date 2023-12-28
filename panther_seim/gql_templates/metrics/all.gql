@@ -1,0 +1,42 @@
+query all ($input: MetricsInput!) {
+  metrics(input: $input) {
+    alertsPerSeverity {
+      label
+      value
+      breakdown
+    }
+    alertsPerRule {
+      label
+      value
+      entityId
+    }
+    eventsProcessedPerLogType {
+      label
+      value
+      breakdown
+    }
+    bytesProcessedPerSource {
+      label
+      value
+      breakdown
+    }
+    latencyPerLogType {
+      label
+      value
+    }
+    bytesIngestedPerSource {
+      label
+      value
+    }
+    bytesQueriedPerSource {
+      label
+      value
+      breakdown
+    }
+    totalAlerts
+    totalBytesIngested
+    totalBytesProcessed
+    totalBytesQueried
+    totalEventsProcessed
+  }
+}

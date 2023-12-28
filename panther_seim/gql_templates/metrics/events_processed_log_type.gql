@@ -1,0 +1,9 @@
+query func ($input: MetricsInput!) {
+  metrics(input: $input) {
+    eventsProcessedPerLogType {
+      label
+      value
+      breakdown
+    }
+  }
+}

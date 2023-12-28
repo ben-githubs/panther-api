@@ -1,0 +1,9 @@
+query all ($input: MetricsInput!) {
+  metrics(input: $input) {
+    alertsPerRule {
+      label
+      value
+      entityId
+    }
+  }
+}
