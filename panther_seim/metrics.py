@@ -169,7 +169,7 @@ class MetricsInterface(GraphInterfaceBase):
         vargs = {"input": {"fromDate": start, "toDate": end}}
         results = self.execute_gql("metrics/bytes_processed.gql", vargs)
         return int(results["metrics"]["totalBytesProcessed"])
-    
+
     # Note: the Panther-API name for this metric is 'BytesProcessedPerSource'. However, that name
     #   is misleading, and sounds like it returns the bytes processed by a specific log source.
     #   To avoid confusion, we label this metric as 'bytes_processed_per_logtype', which is what it
@@ -242,7 +242,7 @@ class MetricsInterface(GraphInterfaceBase):
         vargs = {"input": {"fromDate": start, "toDate": end}}
         results = self.execute_gql("metrics/bytes_queried.gql", vargs)
         return int(results["metrics"]["totalBytesQueried"])
-    
+
     # Note: the Panther-API name for this metric is 'BytesQueriedPerSource'. However, that name is
     #   misleading, and sounds like it returns the bytes queried from a specific log source. To
     #   avoid confusion, we label this metric as 'bytes_queried_per_logtype', which is what it
@@ -343,7 +343,7 @@ class MetricsInterface(GraphInterfaceBase):
                 When a string, it must be in ISO format. When an integer, it represents a Unix
                 timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
                 UTC is intended.
-        
+
         Returns:
             A dictionary that represents the latency breakdown. The dictionary keys are the names
             of each log type, and the values are the average log latency, in seconds.
@@ -365,6 +365,5 @@ class MetricsInterface(GraphInterfaceBase):
         data = {}
         for item in results:
             data[item["label"]] = item["value"]
-        
-        return data
 
+        return data
