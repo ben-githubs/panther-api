@@ -297,3 +297,45 @@ class MetricsInterface(GraphInterfaceBase):
         results = results_raw["metrics"]["eventsProcessedPerLogType"]
 
         return convert_series_with_breakdown(results)
+
+    def latency_per_logtype(
+        self,
+        start: str | int | datetime,
+        end: str | int | datetime,
+    ) -> dict:
+        """Calculates the average latency per log type, over the time period.
+
+        Args:
+            start (str, datetime): The start of the period to fetch metrics for.
+                When a string, it must be in ISO format. When an integer, it represents a Unix
+                timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
+                UTC is intended.
+            end (str, datetime): The end of the period to fetch metrics for.
+                When a string, it must be in ISO format. When an integer, it represents a Unix
+                timestamp in UTC. When a string or datetime, if no timezone is specified, we assume
+                UTC is intended.
+        
+        Returns:
+            A dictionary that represents the latency breakdown. The dictionary keys are the names
+            of each log type, and the values are the average log latency, in seconds.
+        """
+        # -- Validate Input
+        start = validate_timestamp(start)
+        end = validate_timestamp(end)
+
+        # -- Invoke API
+        vargs = {"input": {"fromDate": start, "toDate": end}}
+        results_raw = self.execute_gql("metrics/latency_log_type.gql", vargs)
+        results = results_raw["metrics"]["latencyPerLogType"]
+
+        # -- Format output
+        # The data from the backend is a list of dictionaries, with 2 fields: one for the log type
+        #   name, and one for the latency. To make it easier to extract info, we reformat this data
+        #   into a single dictionary, where the keys are the log type name, and the values are the
+        #   latency.
+        data = {}
+        for item in results:
+            data[item["label"]] = item["value"]
+        
+        return data
+
