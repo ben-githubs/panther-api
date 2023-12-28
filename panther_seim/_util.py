@@ -136,7 +136,7 @@ def validate_timestamp(timestamp: int | str | datetime):
         return timestamp
     # If we get here, then the input is none of the allowed value types, so we should return an
     #   error.
-    raise ValueError(
+    raise TypeError(
         (
             "Invalid timestamp - timestamp must be a string, integer, or datetime object, "
             f"not {type(timestamp).__name__}."
