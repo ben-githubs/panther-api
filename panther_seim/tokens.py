@@ -15,7 +15,6 @@ class TokensInterface(GraphInterfaceBase):
         several seconds before the new token value is valid.
         """
         resp = self.execute_gql("tokens/rotate.gql")
-        print(resp)
         token = resp["rotateAPIToken"]["token"]["value"]
 
         # -- Update Panther client object
@@ -23,6 +22,6 @@ class TokensInterface(GraphInterfaceBase):
         # To reset the auth for the GQL client, we can just delete the current client. The next GQL
         #   call will trigger a new client to be created, with the new token value for
         #   authentication.
-        self.root._gql_client = None  # pylint: disable=protected-access
+        del self.root._gql_client  # pylint: disable=protected-access
 
         return token
