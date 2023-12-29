@@ -168,7 +168,6 @@ class AlertsInterface(GraphInterfaceBase):
                 "alerts/update_status.gql", {"input": {"ids": alertids, "status": status}}
             )
             for result in results["updateAlertStatusById"]["alerts"]:
-                print(result)
                 alerts[result["id"]].update(result)
 
         if len(alerts) == 1:

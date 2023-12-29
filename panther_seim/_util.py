@@ -191,10 +191,9 @@ class GraphInterfaceBase:
         # It's useful to be able to specify a different client for testing purposes. Normally, I
         #   wouldn't include an testing-only parameter as an init parameter, but since this class
         #   should never be instantiated by an end user, it's okay.
-        if gql_client is not None:
-            self.client = gql_client
-        else:
-            self.client = root_client._gql()
+        # When we execute GQL. we'll check ig this is None, and if so, we'll fallback to the root
+        #   GQL client.
+        self.client = gql_client
 
     def execute_gql(self, fname: str, vargs: dict = None) -> dict:
         """Extracts a gql query from a file, and executes it on the given client with the supplied
@@ -208,7 +207,10 @@ class GraphInterfaceBase:
             vargs = {}
         query = gql_from_file(fname)
         try:
-            return self.client.execute(query, variable_values=vargs)
+            client = self.client
+            if client is None:
+                client = self.root._gql()  # pylint: disable=protected-access
+            return client.execute(query, variable_values=vargs)
         except TransportQueryError as e:
             for err in e.errors:
                 msg = err.get("message", "")

@@ -152,7 +152,6 @@ class CloudAccountsInterface(GraphInterfaceBase):
             values["resourceTypeIgnoreList"] = resource_type_ignore
         try:
             result = self.execute_gql("cloud_accounts/create.gql", {"input": values})
-            print(result)
             return result["createCloudAccount"]["cloudAccount"]["id"]
         except TransportQueryError as e:
             for err in e.errors:
@@ -181,7 +180,6 @@ class CloudAccountsInterface(GraphInterfaceBase):
 
         # Invoke API
         results = self.execute_gql("cloud_accounts/delete.gql", {"id": accountid})
-        print(results)
         return results["deleteCloudAccount"]["id"]
 
     # pylint: disable=too-many-arguments, too-many-branches
