@@ -18,6 +18,7 @@ from .databases import DatabaseInterface
 from .metrics import MetricsInterface
 from .queries import QueriesInterface
 from .sources import SourcesInterface
+from .tokens import TokensInterface
 from .users import UsersInterface
 
 from .gql_scalars import update_schemas
@@ -62,6 +63,7 @@ class Panther:
         self.metrics = MetricsInterface(self)
         self.queries = QueriesInterface(self)
         self.sources = SourcesInterface(self)
+        self.tokens = TokensInterface(self)
         self.users = UsersInterface(self)
 
     def _gql(self) -> gql.Client:
