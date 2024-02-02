@@ -1,0 +1,22 @@
+query roles ($input: RolesInput) {
+  roles(input: $input) {
+    createdAt
+    id
+    name
+    permissions
+    updatedAt
+    updatedBy {
+      ... on User {
+        email
+        id
+      }
+      ... on APIToken {
+        id
+        name
+      }
+    }
+    # Used only if RBAC per log type is enabled
+    logTypeAccess 
+    logTypeAccessKind
+  }
+}

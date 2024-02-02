@@ -17,6 +17,7 @@ from .cloud_accounts import CloudAccountsInterface
 from .databases import DatabaseInterface
 from .metrics import MetricsInterface
 from .queries import QueriesInterface
+from .roles import RolesInterface
 from .sources import SourcesInterface
 from .tokens import TokensInterface
 from .users import UsersInterface
@@ -62,6 +63,7 @@ class Panther:
         self.databases = DatabaseInterface(self)
         self.metrics = MetricsInterface(self)
         self.queries = QueriesInterface(self)
+        self.roles = RolesInterface(self)
         self.sources = SourcesInterface(self)
         self.tokens = TokensInterface(self)
         self.users = UsersInterface(self)
