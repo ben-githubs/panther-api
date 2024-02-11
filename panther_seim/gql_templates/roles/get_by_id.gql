@@ -1,0 +1,24 @@
+query roleById ($id: ID!) {
+  roleById(id: $id) {
+    createdAt
+    id
+    logTypeAccess
+    logTypeAccessKind
+    name
+    permissions
+    updatedAt
+    updatedBy {
+      ... on User {
+        email
+        id
+      }
+      ... on APIToken {
+        id
+        name
+      }
+    }
+    # Used only if RBAC per log type is enabled
+    logTypeAccess 
+    logTypeAccessKind
+  }
+}
