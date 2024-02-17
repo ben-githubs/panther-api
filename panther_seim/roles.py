@@ -222,6 +222,40 @@ class RolesInterface(GraphInterfaceBase):
             msg = "\n\t".join(msgs)
             raise PantherError(f"Panther encountered the following errors:\n\t{msg}")
 
+    def delete(self, roleid: str) -> str:
+        """ Removes an existing role.
+        
+        Args:
+            roleid (str): The UUID of the role to be deleted.
+        
+        Returns:
+            The role ID.
+        """
+        # Validate input
+        if not isinstance(roleid, str):
+            raise TypeError(f"Role ID must be a string, not '{type(roleid).__name__}'.")
+        if not UUID_REGEX.fullmatch(roleid):
+            raise ValueError(f"Role ID '{roleid}' is not a valid UUID.")
+
+        # -- Invoke API
+        vargs = {
+            "input": {
+                "id": to_uuid(roleid)
+            }
+        }
+        try:
+            result = self.execute_gql("roles/delete.gql", vargs)
+            return result["deleteRole"]["id"]
+        except TransportQueryError as e:
+            # NOTE: Panther doesn't return an error if a role with the given ID doesn't exist, so
+            #   we will not raise a ResourceNotFound error.
+            msgs = []
+            for err in e.errors:
+                m = err.get("message", "")
+                msgs.append(m)
+            msg = "\n\t".join(msgs)
+            raise PantherError(f"Panther encountered the following errors:\n\t{msg}")
+
 
 def validate_create_input(
     name: str,

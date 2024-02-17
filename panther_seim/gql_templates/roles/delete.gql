@@ -1,0 +1,6 @@
+mutation deleteRole ($input: DeleteRoleInput!) {
+  deleteRole(input: $input)
+    {
+      id # The delete operation doesn't return a `role` object. Just an ID.
+    }
+}
