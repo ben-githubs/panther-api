@@ -19,8 +19,8 @@ class EntityAlreadyExistsError(PantherError):
 
 
 class QueryCancelled(PantherError):
-    """Raised when a query has been cancelled by the user."""
+    """Raised when a datalake query has been cancelled by the user."""
 
 
 class QueryError(PantherError):
-    """Raised when a query errored during execution."""
+    """Raised when a datalake query errored during execution."""
