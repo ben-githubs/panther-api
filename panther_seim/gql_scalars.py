@@ -46,15 +46,17 @@ DateTimeScalar = GraphQLScalarType(
     name="DateTime", serialize=_util.validate_timestamp, parse_value=parse_datetime
 )
 
+
 # -- Timestamps
 def parse_timestamp(value: int) -> datetime:
     """Converts a unix timestamp into a datetime. Assumes UTC for timezone."""
     # Validate Input
     if not isinstance(value, int):
         raise TypeError(f"Timestamp should be an integer, but got '{type(value).__name__}'.")
-    
+
     # Convert and Append Timezone
     return datetime.fromtimestamp(value, tz=tz.utc)
+
 
 TimestampScalar = GraphQLScalarType(
     name="Timestamp", serialize=_util.validate_timestamp, parse_value=parse_timestamp

@@ -8,39 +8,42 @@ from gql.transport.exceptions import TransportQueryError
 from .exceptions import PantherError, EntityAlreadyExistsError
 from ._util import GraphInterfaceBase, UUID_REGEX, to_uuid
 
+
 class Permission(StrEnum):
-    """ This enum class is mostly for ease of use. We won't perform any validation on input using
+    """This enum class is mostly for ease of use. We won't perform any validation on input using
     this class, and will instead allow the backend to return an error if the permissission passed
     in doesnn't exist. This way, there's no chance of Panther introducing a new permission that
     we can't support.
     """
-    AlertModify = "AlertModify"
-    AlertRead = "AlertRead"
-    BulkUpload = "BulkUpload"
-    CloudsecSourceModify = "CloudsecSourceModify"
-    CloudsecSourceRead = "CloudsecSourceRead"
-    DataAnalyticsModify = "DataAnalyticsModify"
-    DataAnalyticsRead = "DataAnalyticsRead"
-    DestinationModify = "DestinationModify"
-    DestinationRead = "DestinationRead"
-    GeneralSettingsModify = "GeneralSettingsModify"
-    GeneralSettingsRead = "GeneralSettingsRead"
-    LogSourceModify = "LogSourceModify"
-    LogSourceRawDataRead = "LogSourceRawDataRead"
-    LogSourceRead = "LogSourceRead"
-    LookupModify = "LookupModify"
-    LookupRead = "LookupRead"
-    OrganizationAPITokenModify = "OrganizationAPITokenModify"
-    OrganizationAPITokenRead = "OrganizationAPITokenRead"
-    PolicyModify = "PolicyModify"
-    PolicyRead = "PolicyRead"
-    ResourceModify = "ResourceModify"
-    ResourceRead = "ResourceRead"
-    RuleModify = "RuleModify"
-    RuleRead = "RuleRead"
-    SummaryRead = "SummaryRead"
-    UserModify = "UserModify"
-    UserRead = "UserRead"
+
+    ALERT_MODIFY = "AlertModify"
+    ALERT_READ = "AlertRead"
+    BULK_UPLOAD = "BulkUpload"
+    CLOUDSEC_SOURCE_MODIFY = "CloudsecSourceModify"
+    CLOUDSEC_SOURCE_READ = "CloudsecSourceRead"
+    DATA_ANALYTICS_MODIFY = "DataAnalyticsModify"
+    DATA_ANALYTICS_READ = "DataAnalyticsRead"
+    DESTINATION_MODIFY = "DestinationModify"
+    DESTINATION_READ = "DestinationRead"
+    GENERAL_SETTINGS_MODIFY = "GeneralSettingsModify"
+    GENERAL_SETTINGS_READ = "GeneralSettingsRead"
+    LOG_SOURCE_MODIFY = "LogSourceModify"
+    LOG_SOURCE_RAW_DATA_READ = "LogSourceRawDataRead"
+    LOG_SOURCE_READ = "LogSourceRead"
+    LOOKUP_MODIFY = "LookupModify"
+    LOOKUP_READ = "LookupRead"
+    ORG_API_TOKEN_MODIFY = "OrganizationAPITokenModify"
+    ORG_API_TOKEN_READ = "OrganizationAPITokenRead"
+    POLICY_MODIFY = "PolicyModify"
+    POLICY_READ = "PolicyRead"
+    RESOURCE_MODIFY = "ResourceModify"
+    RESOURCE_READ = "ResourceRead"
+    RULE_MODIFY = "RuleModify"
+    RULE_READ = "RuleRead"
+    SUMMARY_READ = "SummaryRead"
+    USER_MODIFY = "UserModify"
+    USER_READ = "UserRead"
+
 
 class RolesInterface(GraphInterfaceBase):
     """An interface for working with roles in Panther. An instance of this class will be attached
@@ -60,7 +63,9 @@ class RolesInterface(GraphInterfaceBase):
         # Validate Input
         if name_contains is not None:
             if not isinstance(name_contains, str):
-                raise TypeError(f"name_contains must be a string; got {type(name_contains).__name__}")
+                raise TypeError(
+                    f"name_contains must be a string; got {type(name_contains).__name__}"
+                )
 
         # Craft GQL Input Params
         vargs = {"sortDir": "ascending"}
@@ -70,7 +75,7 @@ class RolesInterface(GraphInterfaceBase):
         # Invoke GQL
         result = self.execute_gql("roles/list.gql", vargs={"input": vargs})
         return result.get("roles")
-    
+
     def get(self, roleid: str) -> dict:
         """Retreive all details of a single role
 
@@ -95,15 +100,15 @@ class RolesInterface(GraphInterfaceBase):
         # This is an ID
         result = self.execute_gql("roles/get_by_id.gql", {"id": roleid})
         return result.get("roleById")
-    
+
     def create(
-            self,
-            name: str,
-            permissions: typing.List[Permission|str],
-            log_type_access: typing.List[str] = None,
-            log_type_access_kind: str = "ALLOW_ALL"
+        self,
+        name: str,
+        permissions: typing.List[Permission | str],
+        log_type_access: typing.List[str] = None,
+        log_type_access_kind: str = "ALLOW_ALL",
     ) -> dict:
-        """ Creates a new role.
+        """Creates a new role.
 
         Args:
             name (str): The display name of the role to be created.
@@ -121,23 +126,23 @@ class RolesInterface(GraphInterfaceBase):
                     DENY_ALL: the token cannot access any log types
                 If your Panther instance does not have RBAC per Log Type enabled, then this setting
                 is ignorred.
-        
+
             Returns:
                 The newly-created role object, in dictionary form.
         """
         # -- Validate Input
         validate_create_input(name, permissions, log_type_access, log_type_access_kind)
-        
-        log_type_access_kind = log_type_access_kind.upper().strip() # Some basic formatting
+
+        log_type_access_kind = log_type_access_kind.upper().strip()  # Some basic formatting
         # We won't validate the value of `log_type_access_kind`, instead letting the Panther
         #   backend do that.
-        
+
         # -- Invoke API
         vargs = {
             "input": {
                 "name": name,
                 "permissions": [str(x) for x in permissions],
-                "logTypeAccessKind": log_type_access_kind
+                "logTypeAccessKind": log_type_access_kind,
             }
         }
         # Panther doesn't allog 'logTypeAccess' to be specified when logTypeAccess is set to
@@ -155,20 +160,19 @@ class RolesInterface(GraphInterfaceBase):
                 m = err.get("message", "")
                 msgs.append(m)
                 if re.match(r"Role '[^']+' already exists", m):
-                    raise EntityAlreadyExistsError(m)
+                    raise EntityAlreadyExistsError(m) from e
             msg = "\n\t".join(msgs)
-            raise PantherError(f"Panther encountered the following errors:\n\t{msg}")
-    
+            raise PantherError(f"Panther encountered the following errors:\n\t{msg}") from e
 
-    def update(
-            self,
-            roleid: str,
-            name: str,
-            permissions: typing.List[str|Permission],
-            log_type_access: typing.List[str] = None,
-            log_type_access_kind: str = "ALLOW_ALL"
+    def update(  # pylint: disable=too-many-arguments
+        self,
+        roleid: str,
+        name: str,
+        permissions: typing.List[str | Permission],
+        log_type_access: typing.List[str] = None,
+        log_type_access_kind: str = "ALLOW_ALL",
     ) -> dict:
-        """ Updates an existing role. The provided configuration replaces the existing one.
+        """Updates an existing role. The provided configuration replaces the existing one.
         Ensure that you specify all desired permissions for the role.
 
         Args:
@@ -194,15 +198,15 @@ class RolesInterface(GraphInterfaceBase):
         # -- Validate Input
         validate_create_input(name, permissions, log_type_access, log_type_access_kind)
         roleid = to_uuid(roleid)
-        log_type_access_kind = log_type_access_kind.upper().strip() # Some basic formatting
-        
+        log_type_access_kind = log_type_access_kind.upper().strip()  # Some basic formatting
+
         # -- Invoke API
         vargs = {
             "input": {
                 "id": roleid,
                 "name": name,
                 "permissions": [str(x) for x in permissions],
-                "logTypeAccessKind": log_type_access_kind
+                "logTypeAccessKind": log_type_access_kind,
             }
         }
         # Panther doesn't allog 'logTypeAccess' to be specified when logTypeAccess is set to
@@ -220,14 +224,14 @@ class RolesInterface(GraphInterfaceBase):
                 m = err.get("message", "")
                 msgs.append(m)
             msg = "\n\t".join(msgs)
-            raise PantherError(f"Panther encountered the following errors:\n\t{msg}")
+            raise PantherError(f"Panther encountered the following errors:\n\t{msg}") from e
 
     def delete(self, roleid: str) -> str:
-        """ Removes an existing role.
-        
+        """Removes an existing role.
+
         Args:
             roleid (str): The UUID of the role to be deleted.
-        
+
         Returns:
             The role ID.
         """
@@ -238,11 +242,7 @@ class RolesInterface(GraphInterfaceBase):
             raise ValueError(f"Role ID '{roleid}' is not a valid UUID.")
 
         # -- Invoke API
-        vargs = {
-            "input": {
-                "id": to_uuid(roleid)
-            }
-        }
+        vargs = {"input": {"id": to_uuid(roleid)}}
         try:
             result = self.execute_gql("roles/delete.gql", vargs)
             return result["deleteRole"]["id"]
@@ -254,15 +254,16 @@ class RolesInterface(GraphInterfaceBase):
                 m = err.get("message", "")
                 msgs.append(m)
             msg = "\n\t".join(msgs)
-            raise PantherError(f"Panther encountered the following errors:\n\t{msg}")
+            raise PantherError(f"Panther encountered the following errors:\n\t{msg}") from e
 
 
 def validate_create_input(
     name: str,
-    permissions: typing.List[Permission|str],
+    permissions: typing.List[Permission | str],
     log_type_access: typing.List[str] = None,
-    log_type_access_kind: str = "ALLOW_ALL"
+    log_type_access_kind: str = "ALLOW_ALL",
 ):
+    """Performs some common input validation, used in the create and input functions."""
     if not isinstance(name, str):
         raise ValueError(f"Name must be a string; got {type(name).__name__}.")
     if not isinstance(permissions, list):
@@ -284,8 +285,7 @@ def validate_create_input(
     for idx, item in enumerate(log_type_access):
         if not isinstance(item, str):
             raise ValueError(
-                f"log_type_access[{idx}] must be a string; "
-                "got {type(item).__name__}."
+                f"log_type_access[{idx}] must be a string; " "got {type(item).__name__}."
             )
     if not isinstance(log_type_access_kind, str):
         raise ValueError(
