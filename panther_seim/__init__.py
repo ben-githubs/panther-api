@@ -17,6 +17,7 @@ from .cloud_accounts import CloudAccountsInterface
 from .databases import DatabaseInterface
 from .metrics import MetricsInterface
 from .queries import QueriesInterface
+from .roles import RolesInterface
 from .sources import SourcesInterface
 from .tokens import TokensInterface
 from .users import UsersInterface
@@ -36,7 +37,7 @@ class Panther:
             domain (str): Your Panther domain. ex: yourcompany.runpanther.net
             auto_convert (bool) = False: If true, we will convert some values from the backend
                 into Python objects. For example, timestamp strings will be converted to datetime
-                objects. This setting makes working with the reslt set in Python more convenient,
+                objects. This setting makes working with the result set in Python more convenient,
                 but may cause trouble when serializing API results into JSON or other formats.
         """
         # Validate input
@@ -62,6 +63,7 @@ class Panther:
         self.databases = DatabaseInterface(self)
         self.metrics = MetricsInterface(self)
         self.queries = QueriesInterface(self)
+        self.roles = RolesInterface(self)
         self.sources = SourcesInterface(self)
         self.tokens = TokensInterface(self)
         self.users = UsersInterface(self)

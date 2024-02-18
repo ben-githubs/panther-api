@@ -1,0 +1,12 @@
+mutation createRole($input: CreateRoleInput!) {
+  createRole(input: $input)
+  {
+    role {
+      name
+      id
+      permissions
+      logTypeAccess
+      logTypeAccessKind
+    }
+  }
+}
