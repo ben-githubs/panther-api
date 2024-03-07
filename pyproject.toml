@@ -11,6 +11,7 @@ python = "^3.10"
 gql = "^3.4.1"
 aiohttp = "^3.9.1"
 pytz = "^2023.3.post1"
+requests = "^2.31.0"
 
 
 [tool.poetry.group.dev.dependencies]

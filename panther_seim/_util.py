@@ -7,6 +7,7 @@ Functions:
 from datetime import datetime
 from pathlib import Path
 import re
+import requests
 from gql import gql, Client
 from gql.transport.exceptions import TransportQueryError
 import pytz
@@ -171,6 +172,55 @@ def gql_from_file(path: str | Path):
 
     # Create a new GQL query from the file contents, and return it
     return gql(contents)
+
+
+class RestInterfaceBase:
+    """A base class for any interfaced using the Panther REST API."""
+
+    # pylint: disable=too-few-public-methods
+    #   Since this is a baseclass, and the subclassess will have more methods defined, this warning
+    #   isn't helpful.
+
+    def __init__(self, root_client, default_timeout: int = 30):
+        """Initializes the Interface class.
+
+        Args:
+            root_client (Panther): the root Panther client.
+            default_timeout (int, optional): the default length of time to wait for an API call to
+                complete, before terminating the request
+        """
+        self.root = root_client
+        self.default_timeout = default_timeout
+
+    def _send_request(self, method: str, endpoint: str, body: dict = None, timeout=None):
+        """A generic send-request function, that has centralized logic for formtatting the
+        headers and adding timeouts.
+
+        Args:
+            method (str): which HTTP method to use - one of 'get', 'post', 'delete', or 'put'
+            endpoint (str): the rest resource to send the request to
+                examples: data_models, rules/My.Rule
+            body (dict, optional): the request body, such as a rule specification
+            timeout (int, optional): how long to wait for a response before aborting
+                If unspecified, the default value passed to __init__ is used.
+        """
+        # Create the headers
+        headers = {
+            "X-API-Key": self.root.token,
+        }
+
+        # Send the request
+        url = f"https://api.{self.root.domain}/v1/{endpoint}"
+        timeout = timeout | self.root.default_timeout
+        match method.lower().strip():
+            case "get":
+                return requests.get(url, headers=headers, timeout=timeout)
+            case "post":
+                return requests.post(url, data=body, headers=headers, timeout=timeout)
+            case "put":
+                return requests.post(url, data=body, headers=headers, timeout=timeout)
+            case "delete":
+                return requests.delete(url, headers=headers, timeout=timeout)
 
 
 class GraphInterfaceBase:
