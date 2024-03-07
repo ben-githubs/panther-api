@@ -7,6 +7,7 @@ Functions:
 from datetime import datetime
 from pathlib import Path
 import re
+import requests
 from gql import gql, Client
 from gql.transport.exceptions import TransportQueryError
 import pytz
@@ -171,6 +172,38 @@ def gql_from_file(path: str | Path):
 
     # Create a new GQL query from the file contents, and return it
     return gql(contents)
+
+
+class RestInterfaceBase:
+    """A base class for any interfaced using the Panther REST API."""
+
+    def __init__(self, root_client):
+        """Initializes the Interface class.
+        
+        Args:
+            root_client (Panther): the root Panther client.
+        """
+        self.root = root_client
+    
+    def _send_request(self, method: str, endpoint: str, body: dict = {}):
+        """ A generic send-request function, that has centralized logic for formtatting the headers
+        """
+        # Create the headers
+        headers = {
+            "X-API-Key": self.root.token,
+        }
+
+        # Send the request
+        url = f"https://api.{self.root.domain}/v1/{endpoint}"
+        match method.lower().strip():
+            case "get":
+                return requests.get(url, headers=headers)
+            case "post":
+                return requests.post(url, data=body, headers=headers)
+            case "put":
+                return requests.post(url, data=body, headers=headers)
+            case "delete":
+                return requests.delete(url, headers=headers)
 
 
 class GraphInterfaceBase:
