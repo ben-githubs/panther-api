@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "panther_seim"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 gql = "^3.4.1"
 aiohttp = "^3.9.1"
 pytz = "^2023.3.post1"
