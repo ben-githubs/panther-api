@@ -4,11 +4,9 @@ Reference:
     https://docs.panther.com/panther-developer-workflows/api/rest/data-models
 """
 
-import requests
-
+from typing import Sequence, Mapping
 from ._util import RestInterfaceBase, get_rest_response
 from .exceptions import PantherError, EntityNotFoundError, EntityAlreadyExistsError
-from typing import Sequence, Mapping
 
 
 class DataModelInterface(RestInterfaceBase):
@@ -54,7 +52,7 @@ class DataModelInterface(RestInterfaceBase):
         return get_rest_response(resp)
 
     @staticmethod
-    def _create(
+    def _create(  # pylint: disable=too-many-arguments
         body: str = "",
         description: str = "",
         display_name: str = None,
@@ -93,7 +91,7 @@ class DataModelInterface(RestInterfaceBase):
 
         return body
 
-    def create(
+    def create(  # pylint: disable=too-many-arguments
         self,
         model_id: str,
         body: str = "",
@@ -137,7 +135,7 @@ class DataModelInterface(RestInterfaceBase):
             raise EntityAlreadyExistsError(msg)
         return get_rest_response(resp)
 
-    def update(
+    def update(  # pylint: disable=too-many-arguments
         self,
         model_id: str,
         new_id: str = None,

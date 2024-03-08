@@ -7,10 +7,11 @@ Functions:
 from datetime import datetime
 from pathlib import Path
 import re
-import requests
 import typing
+
 from gql import gql, Client
 from gql.transport.exceptions import TransportQueryError
+import requests
 import pytz
 
 from .exceptions import EntityNotFoundError, AccessDeniedError, PantherError
@@ -174,9 +175,9 @@ def gql_from_file(path: str | Path):
     # Create a new GQL query from the file contents, and return it
     return gql(contents)
 
+
 def get_rest_response(resp: requests.Response) -> typing.Any:
-    """ Attempts to unmarshal a rest API response, raising an error if we can't.
-    """
+    """Attempts to unmarshal a rest API response, raising an error if we can't."""
     try:
         return resp.json()
     except requests.exceptions.JSONDecodeError as e:
@@ -202,7 +203,9 @@ class RestInterfaceBase:
         self.root = root_client
         self.default_timeout = default_timeout
 
-    def _send_request(self, method: str, endpoint: str, body: dict = None, timeout=None, params=None):
+    def _send_request(  # pylint: disable=too-many-arguments
+        self, method: str, endpoint: str, body: dict = None, timeout=None, params=None
+    ):
         """A generic send-request function, that has centralized logic for formtatting the
         headers and adding timeouts.
 
@@ -227,7 +230,9 @@ class RestInterfaceBase:
             case "get":
                 return requests.get(url, headers=headers, timeout=timeout, params=params)
             case "post":
-                return requests.post(url, json=body, headers=headers, timeout=timeout, params=params)
+                return requests.post(
+                    url, json=body, headers=headers, timeout=timeout, params=params
+                )
             case "put":
                 return requests.put(url, json=body, headers=headers, timeout=timeout, params=params)
             case "delete":
