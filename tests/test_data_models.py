@@ -80,30 +80,30 @@ def test_update_400():
 
 # -- DELETE
             
-def delete_200():
+def test_delete_204():
     """Successfull delete operation."""
     with requests_mock.Mocker() as m:
-        m.delete(f"{URL}/my_id", status_code=200)
+        m.delete(f"{URL}/my_id", status_code=204)
         fake_client.data_models.delete("my_id")
 
-def delete_400():
+def test_delete_400():
     """Improper delete request."""
     with pytest.raises(PantherError):
         with requests_mock.Mocker() as m:
             m.delete(f"{URL}/my_id", status_code=400)
             fake_client.data_models.delete("my_id")
 
-def delete_404():
+def test_delete_404():
     """Try to delete non-existing item."""
     with pytest.raises(EntityNotFoundError):
         with requests_mock.Mocker() as m:
-            m.delete(f"{URL}/my_id", status_code=400)
+            m.delete(f"{URL}/my_id", status_code=404)
             fake_client.data_models.delete("my_id")
 
 # -- LIST
 
-def list_200():
+def test_list_200():
     """Successful list operation."""
     with requests_mock.Mocker() as m:
-        m.delete(f"{URL}", status_code=200)
+        m.get(f"{URL}", status_code=200, json={})
         fake_client.data_models.list()
