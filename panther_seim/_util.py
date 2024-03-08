@@ -8,11 +8,12 @@ from datetime import datetime
 from pathlib import Path
 import re
 import requests
+import typing
 from gql import gql, Client
 from gql.transport.exceptions import TransportQueryError
 import pytz
 
-from .exceptions import EntityNotFoundError, AccessDeniedError
+from .exceptions import EntityNotFoundError, AccessDeniedError, PantherError
 
 # This variable defines the root of the package on the filesystem, and allows us to import files
 #   from within the package.
@@ -173,6 +174,15 @@ def gql_from_file(path: str | Path):
     # Create a new GQL query from the file contents, and return it
     return gql(contents)
 
+def get_rest_response(resp: requests.Response) -> typing.Any:
+    """ Attempts to unmarshal a rest API response, raising an error if we can't.
+    """
+    try:
+        return resp.json()
+    except requests.exceptions.JSONDecodeError as e:
+        msg = f"Cannot parse response: {resp.text}"
+        raise PantherError(msg) from e
+
 
 class RestInterfaceBase:
     """A base class for any interfaced using the Panther REST API."""
@@ -192,7 +202,7 @@ class RestInterfaceBase:
         self.root = root_client
         self.default_timeout = default_timeout
 
-    def _send_request(self, method: str, endpoint: str, body: dict = None, timeout=None):
+    def _send_request(self, method: str, endpoint: str, body: dict = None, timeout=None, params=None):
         """A generic send-request function, that has centralized logic for formtatting the
         headers and adding timeouts.
 
@@ -203,6 +213,7 @@ class RestInterfaceBase:
             body (dict, optional): the request body, such as a rule specification
             timeout (int, optional): how long to wait for a response before aborting
                 If unspecified, the default value passed to __init__ is used.
+            params (dict, optional): dict of request parameters for the API call
         """
         # Create the headers
         headers = {
@@ -210,17 +221,17 @@ class RestInterfaceBase:
         }
 
         # Send the request
-        url = f"https://api.{self.root.domain}/v1/{endpoint}"
-        timeout = timeout | self.root.default_timeout
+        url = f"https://api.{self.root.domain}/{endpoint}"
+        timeout = timeout or self.default_timeout
         match method.lower().strip():
             case "get":
-                return requests.get(url, headers=headers, timeout=timeout)
+                return requests.get(url, headers=headers, timeout=timeout, params=params)
             case "post":
-                return requests.post(url, data=body, headers=headers, timeout=timeout)
+                return requests.post(url, json=body, headers=headers, timeout=timeout, params=params)
             case "put":
-                return requests.post(url, data=body, headers=headers, timeout=timeout)
+                return requests.put(url, json=body, headers=headers, timeout=timeout, params=params)
             case "delete":
-                return requests.delete(url, headers=headers, timeout=timeout)
+                return requests.delete(url, headers=headers, timeout=timeout, params=params)
 
 
 class GraphInterfaceBase:
