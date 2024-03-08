@@ -35,3 +35,16 @@ class GlobalInterface(RestInterfaceBase):
             helpers += results.get("results", [])
 
         return helpers
+
+    def get(self, global_id: str) -> dict:
+        """Returns the global helper with the provided ID.
+
+        Args:
+            global_id (str): The ID of the global to fetch.
+        """
+
+        resp = self._send_request("get", f"globals/{global_id}")
+        if resp.status_code == 404:
+            msg = f"No globasl found with ID '{global_id}'"
+            raise EntityNotFoundError(msg)
+        return get_rest_response(resp)
