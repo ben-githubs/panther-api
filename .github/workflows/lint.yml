@@ -1,0 +1,26 @@
+on:
+    pull_request:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout
+  
+      - name: Set python version
+        uses: actions/setup-python
+        with:
+          python-version: '3.11'
+      
+      - name: Install Poetry
+        run: pip install poetry
+      
+      - name: Install dependencies
+        run: make install
+      
+      - name: make lint
+        run: make lint
+                
