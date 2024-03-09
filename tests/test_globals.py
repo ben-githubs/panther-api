@@ -1,5 +1,5 @@
 from . import fake_client
-from panther_seim.exceptions import EntityNotFoundError
+from panther_seim.exceptions import PantherError, EntityNotFoundError, EntityAlreadyExistsError
 import requests_mock
 import pytest
 
@@ -27,3 +27,25 @@ def test_get_404():
         with requests_mock.Mocker() as m:
             m.get(f"{URL}/my_id", status_code=404, json={})
             fake_client.globals.get("my_id")
+
+# -- CREATE
+
+def test_create_200():
+    """Item created successfully."""
+    with requests_mock.Mocker() as m:
+        m.post(URL, status_code=200, json={})
+        fake_client.globals.create("my_id", "")
+
+def test_create_400():
+    """Invalid create request."""
+    with pytest.raises(PantherError):
+        with requests_mock.Mocker() as m:
+            m.post(f"{URL}", status_code=400, json={})
+            fake_client.globals.create("my_id", "")
+
+def test_create_409():
+    """Item ID already in use."""
+    with pytest.raises(EntityAlreadyExistsError):
+        with requests_mock.Mocker() as m:
+            m.post(f"{URL}", status_code=409, json={})
+            fake_client.globals.create("my_id", "")
