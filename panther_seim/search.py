@@ -8,7 +8,7 @@ from panther_seim.exceptions import QueryCancelled, QueryError
 from ._util import UUID_REGEX, to_uuid, GraphInterfaceBase
 
 
-class QueriesInterface(GraphInterfaceBase):
+class SearchInterface(GraphInterfaceBase):
     """An interface for working with queries in Panther. An instance of this class will be attached
     to the Panther client object.
     """
@@ -32,7 +32,7 @@ class QueriesInterface(GraphInterfaceBase):
 
         # -- API Call
         vargs = {"sql": sql}
-        results = self.execute_gql("queries/execute.gql", vargs)
+        results = self.execute_gql("search/execute.gql", vargs)
         return results["executeDataLakeQuery"]["id"]
 
     def results(self, query_id: str) -> tuple[str, str, List[dict]]:
@@ -60,7 +60,7 @@ class QueriesInterface(GraphInterfaceBase):
 
         # -- API Call
         vargs = {"id": query_id}
-        resp = self.execute_gql("queries/results.gql", vargs)
+        resp = self.execute_gql("search/results.gql", vargs)
 
         # If the query hasn't returned results, return the status and message
         results = resp["dataLakeQuery"]
@@ -71,7 +71,7 @@ class QueriesInterface(GraphInterfaceBase):
         rows = [edge["node"] for edge in results["results"]["edges"]]
         while results.get("pageInfo", {}).get("hasNextPage", False):
             vargs["cursor"] = results["pageInfo"]["endCursor"]
-            resp = self.execute_gql("queries/results.gql", vargs)
+            resp = self.execute_gql("search/results.gql", vargs)
             results = resp["dataLakeQuery"]
             rows.extend([edge["node"] for edge in results["results"]["edges"]])
         return results["status"], results["message"], rows
