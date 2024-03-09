@@ -1,0 +1,26 @@
+on:
+  pull_request:
+  workflow_dispatch:
+  
+jobs:
+  lint:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+  
+      - name: Set python version
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install Poetry
+        run: pip install poetry
+      
+      - name: Install dependencies
+        run: poetry install --with dev
+      
+      - name: make test
+        run: make test
