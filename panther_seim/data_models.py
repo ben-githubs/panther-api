@@ -21,6 +21,7 @@ class DataModelInterface(RestInterfaceBase):
             A list of data models
         """
         # Get Data Models
+        # pylint: disable=duplicate-code
         models = []
         limit = 50
         has_more = True
