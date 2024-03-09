@@ -4,7 +4,7 @@ Reference:
     https://docs.panther.com/panther-developer-workflows/api/rest/globals
 """
 
-from typing import Sequence, Mapping
+from typing import Sequence
 from ._util import RestInterfaceBase, get_rest_response
 from .exceptions import PantherError, EntityNotFoundError, EntityAlreadyExistsError
 
@@ -95,3 +95,45 @@ class GlobalInterface(RestInterfaceBase):
 
         # If none of the status codes above matched, then this is an unknown error.
         raise PantherError(f"Unknown error with code {resp.status_code}: {resp.text}")
+
+    def update(  # pylint: disable=too-many-arguments
+        self,
+        global_id: str,
+        body: str,
+        desc: str = None,
+        tags: Sequence[str] = None,
+        update_only: bool = False,
+    ) -> dict:
+        """Updates an existing global helper.
+
+        Args:
+            global_id (str): The ID of the helper to be updated
+            body (str): The desired Python code for the helper
+            desc (str, optional): A description of the global helper module
+            tags (list[str], optional): Any tags to associate with the helper
+            update_only (bool, optional): Raise an error if the helper doesn't exist
+                By default, if you try to update a helper that doesn't exist, we simply create
+                a new helper according to the parameters passed in. If this behaviour is undesirable
+                then set update_only to False.
+
+        Returns:
+            (dict) The new, updated helper module
+        """
+        # Build base payload
+        payload = GlobalInterface._create(body, desc, tags)
+        payload["id"] = global_id
+
+        # Check if item exists
+        if update_only:
+            self.get(global_id)  # Will raise EntityNotFound if the item doesn't exist yet
+
+        # Invoke API
+        resp = self._send_request("PUT", f"globals/{global_id}", body=payload)
+        match resp.status_code:
+            case 200 | 201:
+                return get_rest_response(resp)
+            case 400:
+                raise PantherError(f"Invalid request: {resp.text}")
+            case _:
+                # If none of the status codes above matched, then this is an unknown error.
+                raise PantherError(f"Unknown error with code {resp.status_code}: {resp.text}")
