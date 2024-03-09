@@ -5,7 +5,7 @@ from graphql import DocumentNode
 from dotenv import load_dotenv
 
 from panther_seim import Panther
-from panther_seim.queries import QueriesInterface
+from panther_seim.search import SearchInterface
 from panther_seim.exceptions import QueryError
 
 load_dotenv(".env")
@@ -27,7 +27,7 @@ class TestExecute:
     ])
     def test_invalid_type(self, sql):
         with pytest.raises(TypeError):
-            self.client.queries.execute_async(sql)
+            self.client.search.execute_async(sql)
     
     @pytest.mark.skipif(os.environ.get("TEST_LIVE") is None, reason="Live testing is not enabled.")
     @pytest.mark.parametrize("sql", [
@@ -36,7 +36,7 @@ class TestExecute:
     ])
     def test_invalid_sql(self, sql):
         with pytest.raises(QueryError):
-            self.client.queries.execute(sql)
+            self.client.search.execute(sql)
     
 
     @pytest.mark.skipif(os.environ.get("TEST_LIVE") is None, reason="Live testing is not enabled.")
@@ -45,7 +45,7 @@ class TestExecute:
         "SELECT * FROM panther_monitor.public.data_audit ORDER BY p_event_time desc LIMIT 10"
     ])
     def test_valid_sql_live(self, sql):
-        assert self.client.queries.execute(sql, refresh=1) is not None
+        assert self.client.search.execute(sql, refresh=1) is not None
 
 class TestResult:
     class FakeClient:
@@ -60,7 +60,7 @@ class TestResult:
                 }
             }
         
-    client = QueriesInterface(None, FakeClient())
+    client = SearchInterface(None, FakeClient())
 
     @pytest.mark.parametrize("queryid", [
         10, # int
