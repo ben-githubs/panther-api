@@ -9,10 +9,10 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout
+        uses: actions/checkout@v4
   
       - name: Set python version
-        uses: actions/setup-python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       
@@ -20,7 +20,7 @@ jobs:
         run: pip install poetry
       
       - name: Install dependencies
-        run: make install
+        run: poetry install --with dev
       
       - name: make lint
         run: make lint
