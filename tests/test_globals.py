@@ -78,3 +78,25 @@ def test_update_400():
         with requests_mock.Mocker() as m:
             m.put(f"{URL}/my_id", status_code=400, text="error")
             fake_client.globals.update("my_id", "")
+
+# -- DELETE
+            
+def test_delete_204():
+    """Successfull delete operation."""
+    with requests_mock.Mocker() as m:
+        m.delete(f"{URL}/my_id", status_code=204)
+        fake_client.globals.delete("my_id")
+
+def test_delete_400():
+    """Improper delete request."""
+    with pytest.raises(PantherError):
+        with requests_mock.Mocker() as m:
+            m.delete(f"{URL}/my_id", status_code=400)
+            fake_client.globals.delete("my_id")
+
+def test_delete_404():
+    """Try to delete non-existing item."""
+    with pytest.raises(EntityNotFoundError):
+        with requests_mock.Mocker() as m:
+            m.delete(f"{URL}/my_id", status_code=404)
+            fake_client.globals.delete("my_id")

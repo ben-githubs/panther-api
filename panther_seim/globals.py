@@ -137,3 +137,24 @@ class GlobalInterface(RestInterfaceBase):
             case _:
                 # If none of the status codes above matched, then this is an unknown error.
                 raise PantherError(f"Unknown error with code {resp.status_code}: {resp.text}")
+
+    def delete(self, global_id) -> None:
+        """Deletes a global helper.
+
+        Args:
+            global_id (str): The ID of the global helper to delete
+        """
+        resp = self._send_request("DELETE", f"globals/{global_id}")
+
+        match resp.status_code:
+            case 204:
+                return
+            case 400:
+                raise PantherError(f"Invalid request: {resp.text}")
+            case 404:
+                raise EntityNotFoundError(
+                    f"Cannot delete global with ID {global_id}; ID does not exist"
+                )
+            case _:
+                # If none of the status codes above matched, then this is an unknown error.
+                raise PantherError(f"Unknown error with code {resp.status_code}: {resp.text}")
