@@ -20,7 +20,7 @@ jobs:
         run: pip install poetry
       
       - name: Install dependencies
-        run: make install
+        run: poetry install --with dev
       
       - name: make lint
         run: make lint
