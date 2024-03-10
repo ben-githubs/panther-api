@@ -4,7 +4,7 @@ Reference:
     https://docs.panther.com/panther-developer-workflows/api/rest/queries
 """
 
-from .exceptions import PantherError, EntityNotFoundError
+from .exceptions import PantherError, EntityNotFoundError, EntityAlreadyExistsError
 from ._util import RestInterfaceBase, get_rest_response, to_uuid
 
 class QueriesInterface(RestInterfaceBase):
@@ -54,3 +54,83 @@ class QueriesInterface(RestInterfaceBase):
             case _:
                 # If none of the status codes above matched, then this is an unknown error.
                 raise PantherError(f"Unknown error with code {resp.status_code}: {resp.text}")
+    
+    @staticmethod
+    def _create( # pylint: disable=too-many-arguments
+        name: str,
+        sql: str,
+        desc: str = None,
+        sched_cron: str = None,
+        sched_rate_mins: int = None,
+        sched_disabled: bool = None,
+        sched_timeout_mins: int = None
+    ) -> dict:
+        """Returns the base payload used in the create and update API requests."""
+
+        payload = {
+            "name": name,
+            "sql": sql
+        }
+        if desc:
+            payload["description"] = desc
+        # I am trusting the server to do validation to determine which schedule properties are
+        #   required, which are mutually exclusive, etc.
+        schedule = {}
+        if sched_cron:
+            schedule["cron"] = sched_cron
+        if sched_rate_mins:
+            schedule["rateMinutes"] = sched_rate_mins
+        if sched_timeout_mins:
+            schedule["timeoutMinutes"] = sched_timeout_mins
+        if sched_disabled:
+            schedule["disabled"] = sched_disabled
+        # Only add 'schedule' to payload if there's any data in it
+        if schedule:
+            payload["schedule"] = schedule
+
+        return payload
+    
+    def create( # pylint: disable=too-many-arguments
+        self,
+        name: str,
+        sql: str,
+        desc: str = None,
+        sched_cron: str = None,
+        sched_rate_mins: int = None,
+        sched_disabled: bool = None,
+        sched_timeout_mins: int = None
+    ) -> dict:
+        """Saves a new query to Panther.
+
+        Args:
+            name (str): The name of the query as displayed in Panther
+            sql (str): The raw SQL of the query
+            desc (str, optional): A description of the query module
+            sched_cron (str, optional): A cron expression to indicate when this query runs
+                Can be left blank if you don't want to run this query regularly.
+            sched_rate_mins (int, optional): An interval, in minutes, to run this query
+                Can be left blank if you don't want to run this query regularly.
+            sched_disabled (bool, optional): If True, the query won't run on a schedule
+            sched_timeout_mins (int, optional): Upper-limit on query run time
+            
+
+        Returns:
+            (dict) The created query's metadata
+        """
+        # Build base payload
+        payload = QueriesInterface._create(name, sql, desc, sched_cron, sched_rate_mins, sched_disabled, sched_timeout_mins)
+
+        # Invoke API
+        resp = self._send_request("POST", "queries", body=payload)
+        match resp.status_code:
+            case 200:
+                return get_rest_response(resp)
+            case 400:
+                raise PantherError(f"Invalid request: {resp.text}")
+            case 409:
+                raise EntityAlreadyExistsError(
+                    f"Cannot save query; name '{name}' is already in use"
+                )
+
+        # If none of the status codes above matched, then this is an unknown error.
+        raise PantherError(f"Unknown error with code {resp.status_code}: {resp.text}")
