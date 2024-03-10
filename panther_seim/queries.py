@@ -5,11 +5,21 @@ Reference:
 """
 
 from .exceptions import PantherError, EntityNotFoundError, EntityAlreadyExistsError
-from ._util import RestInterfaceBase, get_rest_response, to_uuid
+from ._util import RestInterfaceBase, get_rest_response, to_uuid, deep_cast_time
 
 class QueriesInterface(RestInterfaceBase):
     """An interface for working with saved and scheduled queries in Panther. An instance of this 
     class will be attached to the Panther client object."""
+
+    @staticmethod
+    def _convert_timestamps(query: dict):
+        """Some fields of the query object are timestamps, but are returned as strings. We cast
+        them to datetime here."""
+        if "createdAt" in query:
+            deep_cast_time(query, "createdAt")
+        if "updatedAt" in query:
+            deep_cast_time(query, "updatedAt")
+        return query
 
     def list(self) -> list[dict]:
         """Lists all queries that are configured in Panther.
@@ -134,3 +144,54 @@ class QueriesInterface(RestInterfaceBase):
 
         # If none of the status codes above matched, then this is an unknown error.
         raise PantherError(f"Unknown error with code {resp.status_code}: {resp.text}")
+
+    def update(  # pylint: disable=too-many-arguments
+        self,
+        query_id: str,
+        name: str,
+        sql: str,
+        desc: str = None,
+        sched_cron: str = None,
+        sched_rate_mins: int = None,
+        sched_disabled: bool = None,
+        sched_timeout_mins: int = None
+    ) -> dict:
+        """Updates an existing saved query. CANNOT be used to create a new query.
+
+        Args:
+            query_id (str): The ID of the query to be updated
+            name (str): The name of the query as displayed in Panther
+            sql (str): The raw SQL of the query
+            desc (str, optional): A description of the query module
+            sched_cron (str, optional): A cron expression to indicate when this query runs
+                Can be left blank if you don't want to run this query regularly.
+            sched_rate_mins (int, optional): An interval, in minutes, to run this query
+                Can be left blank if you don't want to run this query regularly.
+            sched_disabled (bool, optional): If True, the query won't run on a schedule
+            sched_timeout_mins (int, optional): Upper-limit on query run time
+
+        Returns:
+            (dict) The new, updated query
+        """
+        # Ensure ID is a UUID
+        query_id = to_uuid(query_id)
+
+        # Build base payload
+        payload = QueriesInterface._create(name, sql, desc, sched_cron, sched_rate_mins, sched_disabled, sched_timeout_mins)
+
+        # Invoke API
+        resp = self._send_request("POST", f"queries/{query_id}", body=payload)
+        match resp.status_code:
+            case 200 | 201:
+                query = get_rest_response(resp)
+                if self.root.auto_convert:
+                    query = QueriesInterface._convert_timestamps(query)
+                return query
+            case 400:
+                raise PantherError(f"Invalid request: {resp.text}")
+            case 404:
+                msg = f"No query found with ID '{query_id}'"
+                raise EntityNotFoundError(msg)
+            case _:
+                # If none of the status codes above matched, then this is an unknown error.
+                raise PantherError(f"Unknown error with code {resp.status_code}: {resp.text}")
