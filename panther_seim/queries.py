@@ -205,3 +205,25 @@ class QueriesInterface(RestInterfaceBase):
             case _:
                 # If none of the status codes above matched, then this is an unknown error.
                 raise PantherError(f"Unknown error with code {resp.status_code}: {resp.text}")
+
+    def delete(self, query_id) -> None:
+        """Deletes a saved query.
+
+        Args:
+            query_id (str): The ID of the saved or scheduled query to delete
+        """
+        query_id = to_uuid(query_id)
+        resp = self._send_request("DELETE", f"queries/{query_id}")
+
+        match resp.status_code:
+            case 204:
+                return
+            case 400:
+                raise PantherError(f"Invalid request: {resp.text}")
+            case 404:
+                raise EntityNotFoundError(
+                    f"Cannot delete query with ID {query_id}; ID does not exist"
+                )
+            case _:
+                # If none of the status codes above matched, then this is an unknown error.
+                raise PantherError(f"Unknown error with code {resp.status_code}: {resp.text}")

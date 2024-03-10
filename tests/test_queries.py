@@ -76,3 +76,25 @@ def test_update_404():
         with requests_mock.Mocker() as m:
             m.post(f"{URL}/{uuid}", status_code=404, json={})
             fake_client.queries.update(uuid, "my_query", "")
+
+# -- DELETE
+            
+def test_delete_204():
+    """Successfull delete operation."""
+    with requests_mock.Mocker() as m:
+        m.delete(f"{URL}/{uuid}", status_code=204)
+        fake_client.queries.delete(uuid)
+
+def test_delete_400():
+    """Improper delete request."""
+    with pytest.raises(PantherError):
+        with requests_mock.Mocker() as m:
+            m.delete(f"{URL}/{uuid}", status_code=400)
+            fake_client.queries.delete(uuid)
+
+def test_delete_404():
+    """Try to delete non-existing item."""
+    with pytest.raises(EntityNotFoundError):
+        with requests_mock.Mocker() as m:
+            m.delete(f"{URL}/{uuid}", status_code=404)
+            fake_client.queries.delete(uuid)
