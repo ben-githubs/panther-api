@@ -3,7 +3,7 @@
 from datetime import datetime, timezone as tz
 import pytest
 
-from panther_seim.gql_scalars import parse_datetime
+from panther_seim._util import parse_datetime
 
 
 @pytest.mark.parametrize(("value", "expected"), [

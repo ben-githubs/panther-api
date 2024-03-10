@@ -4,7 +4,8 @@ Functions:
     validate_timestamp
 """
 
-from datetime import datetime
+from datetime import datetime, timezone as tz
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 import re
 import typing
@@ -103,6 +104,28 @@ def to_hex(val: str) -> str:
     if not UUID_REGEX.fullmatch(val):
         raise ValueError(f"Invalid ID: {val}")
     return val.replace("-", "")
+
+def parse_datetime(value: str) -> datetime:
+    """Converts a datetime string returned by Panther into a datetime object."""
+    # Validate input
+    if not isinstance(value, str):
+        raise TypeError(f"Timestamp should be a string, but got '{type(value).__name__}'.")
+
+    # Panther may return the timestamp with the no fractional seconds, or with fraction seconds
+    #   of varying sig figs. Python only converts 0 or 6 sig figs, so we need to handle the
+    #   variable input.
+    converted = None
+    parts = value.split(".")
+    match len(parts):
+        case 1:  # No fractional seconds
+            converted = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+        case 2:
+            frac = parts[1][:-1]  # Remove the Z
+            frac = frac.ljust(6, "0")[:6]  # Convert to 6 sig figs
+            new_value = f"{parts[0]}.{frac}Z"
+            converted = datetime.strptime(new_value, "%Y-%m-%dT%H:%M:%S.%fZ")
+
+    return converted.replace(tzinfo=tz.utc)
 
 
 def validate_timestamp(timestamp: int | str | datetime):
@@ -315,3 +338,42 @@ def convert_series_with_breakdown(series: list) -> dict:
         data[item["label"]] = list(item["breakdown"].values())
 
     return data
+
+
+def deep_cast_time(data: dict, path: str, fmt: str = None) -> dict:
+    """Given a nested dictionary and a path, performs a string to datetime conversion on a field
+    and returns a new dictionary. By default, assumed the string is of the form
+        YYYY-MM-DDTHH:MM:SS.FFFFFFFFFFFFZ
+    """
+    fields = path.strip().split(".")
+    obj = data
+    
+    def convert_ts(ts: str, fmt: str):
+        if fmt is None:
+            return parse_datetime(ts)
+        else:
+            return datetime.strptime(ts, fmt)
+    
+    def r_convert(obj, fields, fmt):
+        if len(fields) == 1:
+            field = fields[0]
+            if isinstance(obj, Mapping):
+                obj[field] = convert_ts(obj[field], fmt)
+            elif isinstance(obj, Sequence):
+                if field == "x":
+                    for x in range(len(obj)):
+                        obj[x] = convert_ts(obj[x], fmt)
+                else:
+                    obj[int(field)] = convert_ts(obj[int(field)], fmt)
+
+        if isinstance(obj, Mapping):
+            return r_convert(obj[fields[0]], fields[1:], fmt)
+        if isinstance(obj, Sequence):
+            if fields[0].isdigit():
+                return r_convert(obj[int(fields[0])], fields[1:], fmt)
+            elif fields[0] == "x":
+                return [r_convert(i, fields[1:], fmt) for i in obj]
+            else:
+                raise ValueError(f'Invalid path field "{fields[0]}"')
+    
+    r_convert(obj, fields, fmt=fmt)
