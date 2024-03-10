@@ -189,11 +189,13 @@ class DataModelInterface(RestInterfaceBase):
             raise PantherError(f"Invalid data model: {resp.text}")
         return get_rest_response(resp)
 
-    def delete(self, model_id: str) -> None:
+    def delete(self, model_id: str, ignore404: bool = False) -> None:
         """Deletes a data model.
 
         Args:
             id (str): the ID of the model to delete.
+            ignore404 (bool, optional): whether to raise an error if the model doesn't exist
+                Set to True to suppress an EntityNotFoundError
         """
 
         resp = self._send_request("DELETE", f"data_models/{model_id}")
@@ -203,9 +205,11 @@ class DataModelInterface(RestInterfaceBase):
             case 400:
                 raise PantherError(f"Invalid delete request: {resp.text}")
             case 404:
-                raise EntityNotFoundError(
-                    f"Cannot delete model with ID {model_id}; ID does not exist"
-                )
+                if not ignore404:
+                    raise EntityNotFoundError(
+                        f"Cannot delete model with ID {model_id}; ID does not exist"
+                    )
+                return
 
         # If none of the status codes above matched, then this is an unknown error.
         raise PantherError(f"Unknown error with code {resp.status_code}: {resp.text}")
