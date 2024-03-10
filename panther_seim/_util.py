@@ -105,6 +105,7 @@ def to_hex(val: str) -> str:
         raise ValueError(f"Invalid ID: {val}")
     return val.replace("-", "")
 
+
 def parse_datetime(value: str) -> datetime:
     """Converts a datetime string returned by Panther into a datetime object."""
     # Validate input
@@ -347,22 +348,21 @@ def deep_cast_time(data: dict, path: str, fmt: str = None) -> dict:
     """
     fields = path.strip().split(".")
     obj = data
-    
+
     def convert_ts(ts: str, fmt: str):
         if fmt is None:
             return parse_datetime(ts)
-        else:
-            return datetime.strptime(ts, fmt)
-    
-    def r_convert(obj, fields, fmt):
+        return datetime.strptime(ts, fmt)
+
+    def r_convert(obj, fields, fmt):  # pylint: disable=inconsistent-return-statements
         if len(fields) == 1:
             field = fields[0]
             if isinstance(obj, Mapping):
                 obj[field] = convert_ts(obj[field], fmt)
             elif isinstance(obj, Sequence):
                 if field == "x":
-                    for x in range(len(obj)):
-                        obj[x] = convert_ts(obj[x], fmt)
+                    for idx, item in enumerate(obj):
+                        obj[idx] = convert_ts(item, fmt)
                 else:
                     obj[int(field)] = convert_ts(obj[int(field)], fmt)
 
@@ -371,9 +371,8 @@ def deep_cast_time(data: dict, path: str, fmt: str = None) -> dict:
         if isinstance(obj, Sequence):
             if fields[0].isdigit():
                 return r_convert(obj[int(fields[0])], fields[1:], fmt)
-            elif fields[0] == "x":
+            if fields[0] == "x":
                 return [r_convert(i, fields[1:], fmt) for i in obj]
-            else:
-                raise ValueError(f'Invalid path field "{fields[0]}"')
-    
+            raise ValueError(f'Invalid path field "{fields[0]}"')
+
     r_convert(obj, fields, fmt=fmt)

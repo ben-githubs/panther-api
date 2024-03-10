@@ -7,8 +7,9 @@ Reference:
 from .exceptions import PantherError, EntityNotFoundError, EntityAlreadyExistsError
 from ._util import RestInterfaceBase, get_rest_response, to_uuid, deep_cast_time
 
+
 class QueriesInterface(RestInterfaceBase):
-    """An interface for working with saved and scheduled queries in Panther. An instance of this 
+    """An interface for working with saved and scheduled queries in Panther. An instance of this
     class will be attached to the Panther client object."""
 
     @staticmethod
@@ -71,23 +72,20 @@ class QueriesInterface(RestInterfaceBase):
             case _:
                 # If none of the status codes above matched, then this is an unknown error.
                 raise PantherError(f"Unknown error with code {resp.status_code}: {resp.text}")
-    
+
     @staticmethod
-    def _create( # pylint: disable=too-many-arguments
+    def _create(  # pylint: disable=too-many-arguments
         name: str,
         sql: str,
         desc: str = None,
         sched_cron: str = None,
         sched_rate_mins: int = None,
         sched_disabled: bool = None,
-        sched_timeout_mins: int = None
+        sched_timeout_mins: int = None,
     ) -> dict:
         """Returns the base payload used in the create and update API requests."""
 
-        payload = {
-            "name": name,
-            "sql": sql
-        }
+        payload = {"name": name, "sql": sql}
         if desc:
             payload["description"] = desc
         # I am trusting the server to do validation to determine which schedule properties are
@@ -106,8 +104,8 @@ class QueriesInterface(RestInterfaceBase):
             payload["schedule"] = schedule
 
         return payload
-    
-    def create( # pylint: disable=too-many-arguments
+
+    def create(  # pylint: disable=too-many-arguments
         self,
         name: str,
         sql: str,
@@ -115,7 +113,7 @@ class QueriesInterface(RestInterfaceBase):
         sched_cron: str = None,
         sched_rate_mins: int = None,
         sched_disabled: bool = None,
-        sched_timeout_mins: int = None
+        sched_timeout_mins: int = None,
     ) -> dict:
         """Saves a new query to Panther.
 
@@ -129,13 +127,15 @@ class QueriesInterface(RestInterfaceBase):
                 Can be left blank if you don't want to run this query regularly.
             sched_disabled (bool, optional): If True, the query won't run on a schedule
             sched_timeout_mins (int, optional): Upper-limit on query run time
-            
+
 
         Returns:
             (dict) The created query's metadata
         """
         # Build base payload
-        payload = QueriesInterface._create(name, sql, desc, sched_cron, sched_rate_mins, sched_disabled, sched_timeout_mins)
+        payload = QueriesInterface._create(
+            name, sql, desc, sched_cron, sched_rate_mins, sched_disabled, sched_timeout_mins
+        )
 
         # Invoke API
         resp = self._send_request("POST", "queries", body=payload)
@@ -164,7 +164,7 @@ class QueriesInterface(RestInterfaceBase):
         sched_cron: str = None,
         sched_rate_mins: int = None,
         sched_disabled: bool = None,
-        sched_timeout_mins: int = None
+        sched_timeout_mins: int = None,
     ) -> dict:
         """Updates an existing saved query. CANNOT be used to create a new query.
 
@@ -187,7 +187,9 @@ class QueriesInterface(RestInterfaceBase):
         query_id = to_uuid(query_id)
 
         # Build base payload
-        payload = QueriesInterface._create(name, sql, desc, sched_cron, sched_rate_mins, sched_disabled, sched_timeout_mins)
+        payload = QueriesInterface._create(
+            name, sql, desc, sched_cron, sched_rate_mins, sched_disabled, sched_timeout_mins
+        )
 
         # Invoke API
         resp = self._send_request("POST", f"queries/{query_id}", body=payload)
@@ -215,6 +217,7 @@ class QueriesInterface(RestInterfaceBase):
         query_id = to_uuid(query_id)
         resp = self._send_request("DELETE", f"queries/{query_id}")
 
+        # pylint: disable=duplicate-code
         match resp.status_code:
             case 204:
                 return
