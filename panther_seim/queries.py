@@ -4,7 +4,8 @@ Reference:
     https://docs.panther.com/panther-developer-workflows/api/rest/queries
 """
 
-from ._util import RestInterfaceBase, get_rest_response
+from .exceptions import PantherError, EntityNotFoundError
+from ._util import RestInterfaceBase, get_rest_response, to_uuid
 
 class QueriesInterface(RestInterfaceBase):
     """An interface for working with saved and scheduled queries in Panther. An instance of this 
@@ -34,3 +35,22 @@ class QueriesInterface(RestInterfaceBase):
             queries += results.get("results", [])
 
         return queries
+
+    def get(self, query_id: str) -> dict:
+        """Returns the saved query with the provided ID.
+
+        Args:
+            query_id (str): The UUID of the global to fetch
+        """
+        # Validate Input
+        query_id = to_uuid(query_id)
+        resp = self._send_request("get", f"queries/{query_id}")
+        match resp.status_code:
+            case 200:
+                return get_rest_response(resp)
+            case 404:
+                msg = f"No query found with ID '{query_id}'"
+                raise EntityNotFoundError(msg)
+            case _:
+                # If none of the status codes above matched, then this is an unknown error.
+                raise PantherError(f"Unknown error with code {resp.status_code}: {resp.text}")
