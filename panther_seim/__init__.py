@@ -18,6 +18,7 @@ from .databases import DatabaseInterface
 from .data_models import DataModelInterface
 from .globals import GlobalInterface
 from .metrics import MetricsInterface
+from .queries import QueriesInterface
 from .roles import RolesInterface
 from .search import SearchInterface
 from .sources import SourcesInterface
@@ -66,6 +67,7 @@ class Panther:
         self.data_models = DataModelInterface(self)
         self.globals = GlobalInterface(self)
         self.metrics = MetricsInterface(self)
+        self.queries = QueriesInterface(self)
         self.roles = RolesInterface(self)
         self.search = SearchInterface(self)
         self.sources = SourcesInterface(self)
