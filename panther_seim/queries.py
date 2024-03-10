@@ -44,6 +44,10 @@ class QueriesInterface(RestInterfaceBase):
             has_more = cursor
             queries += results.get("results", [])
 
+        # Timestamp conversion
+        if self.root.auto_convert:
+            queries = [QueriesInterface._convert_timestamps(q) for q in queries]
+
         return queries
 
     def get(self, query_id: str) -> dict:
@@ -57,7 +61,10 @@ class QueriesInterface(RestInterfaceBase):
         resp = self._send_request("get", f"queries/{query_id}")
         match resp.status_code:
             case 200:
-                return get_rest_response(resp)
+                query = get_rest_response(resp)
+                if self.root.auto_convert:
+                    query = QueriesInterface._convert_timestamps(query)
+                return query
             case 404:
                 msg = f"No query found with ID '{query_id}'"
                 raise EntityNotFoundError(msg)
@@ -134,7 +141,10 @@ class QueriesInterface(RestInterfaceBase):
         resp = self._send_request("POST", "queries", body=payload)
         match resp.status_code:
             case 200:
-                return get_rest_response(resp)
+                query = get_rest_response(resp)
+                if self.root.auto_convert:
+                    query = QueriesInterface._convert_timestamps(query)
+                return query
             case 400:
                 raise PantherError(f"Invalid request: {resp.text}")
             case 409:
