@@ -146,6 +146,7 @@ class GlobalInterface(RestInterfaceBase):
         """
         resp = self._send_request("DELETE", f"globals/{global_id}")
 
+        # pylint: disable=duplicate-code
         match resp.status_code:
             case 204:
                 return
