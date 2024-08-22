@@ -20,6 +20,7 @@ from .globals import GlobalInterface
 from .metrics import MetricsInterface
 from .queries import QueriesInterface
 from .roles import RolesInterface
+from .rules import RulesInterface
 from .search import SearchInterface
 from .sources import SourcesInterface
 from .tokens import TokensInterface
@@ -69,6 +70,7 @@ class Panther:
         self.metrics = MetricsInterface(self)
         self.queries = QueriesInterface(self)
         self.roles = RolesInterface(self)
+        self.rules = RulesInterface(self)
         self.search = SearchInterface(self)
         self.sources = SourcesInterface(self)
         self.tokens = TokensInterface(self)
