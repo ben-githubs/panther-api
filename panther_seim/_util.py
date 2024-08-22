@@ -4,8 +4,10 @@ Functions:
     validate_timestamp
 """
 
+from dataclasses import is_dataclass, asdict
 from datetime import datetime, timezone as tz
 from collections.abc import Mapping, Sequence
+import json
 from pathlib import Path
 import re
 import typing
@@ -209,6 +211,27 @@ def get_rest_response(resp: requests.Response) -> typing.Any:
         raise PantherError(msg) from e
 
 
+class CustomJSONEncoder(json.JSONEncoder):
+    """Small upgrade over the default JSON encoder to handle things like custom classes and
+    datetimes."""
+
+    def default(self, o):
+        if is_dataclass(o):
+            # Check if the object has special code to handle transformation to dict
+            if hasattr(o, "to_dict") and callable(o.to_dict):
+                return o.to_dict()
+            # Otherwise, use the default method for turning dataclasses to dicts
+            return asdict(o)
+        if isinstance(o, datetime):
+            return o.isoformat()
+        return json.JSONEncoder.default(self, o)
+
+
+def to_json(obj: typing.Any) -> str:
+    """Converts an object to a JSON string"""
+    return json.dumps(obj, cls=CustomJSONEncoder)
+
+
 class RestInterfaceBase:
     """A base class for any interfaced using the Panther REST API."""
 
@@ -243,9 +266,7 @@ class RestInterfaceBase:
             params (dict, optional): dict of request parameters for the API call
         """
         # Create the headers
-        headers = {
-            "X-API-Key": self.root.token,
-        }
+        headers = {"X-API-Key": self.root.token, "Content-Type": "application/json"}
 
         # Send the request
         url = f"https://api.{self.root.domain}/{endpoint}"
@@ -255,10 +276,12 @@ class RestInterfaceBase:
                 return requests.get(url, headers=headers, timeout=timeout, params=params)
             case "post":
                 return requests.post(
-                    url, json=body, headers=headers, timeout=timeout, params=params
+                    url, data=to_json(body), headers=headers, timeout=timeout, params=params
                 )
             case "put":
-                return requests.put(url, json=body, headers=headers, timeout=timeout, params=params)
+                return requests.put(
+                    url, data=to_json(body), headers=headers, timeout=timeout, params=params
+                )
             case "delete":
                 return requests.delete(url, headers=headers, timeout=timeout, params=params)
 
