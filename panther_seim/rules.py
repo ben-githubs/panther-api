@@ -177,8 +177,12 @@ class RulesInterface(RestInterfaceBase):
     ) -> dict:
         """Returns the base payload used in the create and update API requests."""
 
-        payload = {"id": rule_id, "body": body, "severity": str(severity)}
+        payload = {"id": rule_id}
 
+        if body is not None:
+            payload["body"] = body
+        if severity is not None:
+            payload["severity"] = str(severity)
         if dedup is not None:
             payload["dedupPeriodMinutes"] = dedup
         if desc is not None:
@@ -212,9 +216,9 @@ class RulesInterface(RestInterfaceBase):
     def create(  # pylint: disable=too-many-arguments, too-many-locals
         self,
         rule_id: str,
-        body: str,
-        severity: Severities | str,
-        log_types: List[str],
+        body: str = None,
+        severity: Severities | str = None,
+        log_types: List[str] = None,
         dedup: int = None,
         desc: str = None,
         name: str = None,
