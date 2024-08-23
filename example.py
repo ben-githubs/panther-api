@@ -21,7 +21,7 @@ rule_body = """
 def rule(event):
     eventType = event.get("eventType")
     actor = event.deep_get("actor", "alternateId")
-    return eventType == "user.session.start" and actor = "dee.dee@hacker.com"
+    return eventType == "user.session.start" and actor == "dee.dee@hacker.com"
 """
 
 new_rule = panther.rules.create(
@@ -30,7 +30,6 @@ new_rule = panther.rules.create(
     Severities.INFO,  # The severity (could be an enum or a string: "INFO")
     ["Okta.SystemLog"]  # The log types for the rule to run against
 )
-breakpoint()
 
 # Nice, but let's add a unit test using a real event
 
